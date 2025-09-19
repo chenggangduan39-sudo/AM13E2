@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "qtk_api.h": "c",
+        "pthread.h": "c",
+        "statues_queue.h": "c",
+        "time.h": "c"
+    }
+}

@@ -1,0 +1,1 @@
+./build.sh --android --android_ndk_path /mnt/develop/toolchain/android-ndk-r25c/ --android_sdk_path android-28 --disable_ml_ops --disable_exceptions --build_shared_lib --android_cpp_shared --skip_tests --config Release --use_nnapi --skip_tests --android_abi armeabi-v7a --parallel 4 --install_path=/tmp/ort-1.11.1-android-eabi-v7a

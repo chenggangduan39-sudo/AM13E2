@@ -1,0 +1,13 @@
+#ifndef A9749112_9DD2_AC6E_AAC1_6251BBAAB1A9
+#define A9749112_9DD2_AC6E_AAC1_6251BBAAB1A9
+
+typedef void *qtk_nnrt_value_t;
+
+typedef enum {
+    QTK_NNRT_VALUE_ELEM_F32,
+    QTK_NNRT_VALUE_ELEM_F16,
+    QTK_NNRT_VALUE_ELEM_U8,
+    QTK_NNRT_VALUE_ELEM_I64,
+} qtk_nnrt_value_elem_type_t;
+
+#endif /* A9749112_9DD2_AC6E_AAC1_6251BBAAB1A9 */

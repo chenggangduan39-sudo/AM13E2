@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.qdreamer.example">
+
+    <!-- 联网鉴权，校验 appId 和 secretKey 的是否有该语音功能权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 录音权限 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 拷贝 assets 资源到本地磁盘以及音频日志的读写需要文件权限 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <application
+        android:name="com.qdreamer.example.PhoneApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".activity.SplashActivity"
+            android:exported="true"
+            android:theme="@style/SplashScreenTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".activity.RecordActivity" />
+
+    </application>
+
+</manifest>
