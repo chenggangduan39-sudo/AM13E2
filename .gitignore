@@ -1,0 +1,38 @@
+# build & outputs
+build/
+out/
+dist/
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.elf
+*.map
+
+# 大文件/压缩/模型/固件/数据
+*.bin
+*.img
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.whl
+*.onnx
+*.rknn
+*.pb
+*.pdb
+*.wav
+*.pcm
+*.dat
+*.pdf
+*.log
+
+# vendored 依赖（如需仅保留头文件）
+third/
+!third/**/*.h
+!third/**/*.hpp
+
+# IDE
+.vscode/
+.idea/
