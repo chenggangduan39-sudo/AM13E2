@@ -54,6 +54,7 @@ typedef struct qtk_proc
 	SHM *shmaddr;
 	int shmid;
 	pid_t pid_server;
+	// int audio_check_result;
 }qtk_proc_t;
 
 typedef enum{
@@ -77,10 +78,9 @@ typedef enum{
 	qtk_mod_am13e2_DATA_LINEIN_COUURSEWARE,
 	qtk_mod_am13e2_DATA_LINEIN_COUURSEWARE_TOUAC,
 	qtk_mod_am13e2_DATA_UAC,
-	qtk_mod_am13e2_DATA_IIS,
+	qtk_mod_am13e2_DATA_IIS_TOSPK,
+	qtk_mod_am13e2_DATA_IIS_TOLINEOUT,
 
-	qtk_mod_am13e2_sp2,
-	qtk_mod_am13e2_spk2,
 }qtk_mqform_mod_msg_t;
 // 滤波器状态结构体（单通道）
 typedef struct {
@@ -119,8 +119,11 @@ typedef struct qtk_mod_am13e2{
 	qtk_record_t *rcd4;
 	qtk_play_t *usbaudio;
 	qtk_play_t *lineout;
+	qtk_play_t *speaker;
+
 	wtk_thread_t usbaudio_t;
 	wtk_thread_t lineout_t;
+	wtk_thread_t speaker_t;
 	wtk_thread_t linein_t;
 	wtk_blockqueue_t usbaudio_queue;
 	wtk_blockqueue_t lineout_queue;
@@ -136,6 +139,7 @@ typedef struct qtk_mod_am13e2{
 	qtk_gainnetbf_t *gainnetbf2;
 	qtk_gainnetbf_t *gainnetbf3;
 	qtk_gainnetbf_t *gainnetbf4;
+	qtk_gainnetbf_t *gainnetbf5;
 
 	qtk_vboxebf_t *vboxebf;
 	qtk_vboxebf_t *avboxebf;
@@ -163,8 +167,11 @@ typedef struct qtk_mod_am13e2{
 	wtk_strbuf_t *arraymul_path;
 	wtk_strbuf_t *play_path;
 
-	wtk_strbuf_t *left_audiobuf;	
-	wtk_strbuf_t *all_audiobuf;
+	wtk_strbuf_t *speaker_left_audiobuf;
+	wtk_strbuf_t *lineout_left_audiobuf;	
+
+	wtk_strbuf_t *speaker_all_audiobuf;
+	wtk_strbuf_t *lineout_all_audiobuf;
 	wtk_thread_t rcd_t;
 	wtk_thread_t rcd2_t;
 	wtk_thread_t rcd3_t;
@@ -190,6 +197,7 @@ typedef struct qtk_mod_am13e2{
 	wtk_blockqueue_t gainnet3_queue;
 
 	wtk_blockqueue_t mic_check_rcd_queue;
+	
 	wtk_blockqueue_t mic_check_play_queue;
 	
 	wtk_blockqueue_t merge_rcd_queue;
@@ -201,7 +209,11 @@ typedef struct qtk_mod_am13e2{
 	unsigned int rcd2_run:1;
 	unsigned int rcd3_run:1;
 	unsigned int rcd4_run:1;
-	// unsigned int use_spkout:1;
+	unsigned int speaker_run:1;
+
+	// unsigned int speaker:1;
+
+	unsigned int use_spkout:1;
 	// unsigned int use_wooferout:1;
 	// unsigned int use_headset:1;
 	unsigned int usbaudio_run:1;
@@ -225,8 +237,6 @@ typedef struct qtk_mod_am13e2{
 	unsigned int is_outputstart:1;
 	unsigned int use_linein_out:1;
 	unsigned int use_lineout_out:1;
-	unsigned int audio_check_rcd_feed_end:1;
-	unsigned int audio_check_play_feed_end:1;
 
 	volatile unsigned int play_on:1;
 	unsigned int log_audio:1;
@@ -238,7 +248,11 @@ typedef struct qtk_mod_am13e2{
 	audio_check_result_handler_t result_handler;
     void *handler_userdata;                      
 }qtk_mod_am13e2_t;
-
+typedef enum {
+    QTK_MIC_CHECK_NORMAL = 0,
+    QTK_MIC_CHECK_RCD_ERROR,
+    QTK_MIC_CHECK_PLAY_ERROR,
+}qtk_mic_check_err_type_t;
 
 int qtk_mod_am13e2_bytes(qtk_mod_am13e2_t *m);
 qtk_mod_am13e2_t *qtk_mod_am13e2_new(qtk_mod_am13e2_cfg_t *cfg);

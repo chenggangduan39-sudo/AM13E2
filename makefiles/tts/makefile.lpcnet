@@ -1,0 +1,143 @@
+#include config.mk
+
+SHELL=bash
+pwd=${shell pwd}
+
+###############Configure###################
+use_share=0
+dist=0
+use_debug=0    #for debug log
+
+src_dir=wtk/core/cfg wtk/core/json wtk/core/math wtk/core/parse wtk/core/errno wtk/core/pitch wtk/core/rbin wtk/core/text wtk/core/segmenter wtk/os wtk/tts/parser wtk/lex wtk/tts/tts-mer/wtk-extend wtk/tts/tts-tac qtk/tts/parse
+src_c=${shell find $(src_dir) -name "*.c"}
+src_c+=wtk/core/wtk_alloc.c wtk/core/wtk_arg.c wtk/core/wtk_array.c wtk/core/wtk_buf.c wtk/core/wtk_hash.c \
+wtk/core/wtk_heap.c wtk/core/wtk_hoard.c wtk/core/wtk_os.c wtk/core/wtk_queue.c wtk/core/wtk_queue2.c \
+wtk/core/wtk_queue3.c wtk/core/wtk_rbtree.c wtk/core/wtk_slist.c wtk/core/wtk_robin.c wtk/core/wtk_robin2.c \
+wtk/core/wtk_str_hash.c wtk/core/wtk_strbuf.c wtk/core/wtk_vpool.c wtk/core/wtk_vpool2.c \
+wtk/core/wtk_time.c wtk/core/wtk_wavfile.c wtk/core/wtk_treenode.c wtk/core/wtk_strpool.c wtk/core/wtk_strdict.c wtk/core/wtk_str_parser.c \
+wtk/core/wtk_str_encode.c wtk/core/wtk_str.c wtk/core/wtk_stack.c wtk/core/wtk_larray.c wtk/core/wtk_fkv.c \
+wtk/core/wavehdr.c wtk/core/wtk_strmsg.c wtk/core/wtk_riff.c wtk/core/wtk_bit_heap.c wtk/core/wtk_sort.c \
+wtk/core/wtk_fkv2.c wtk/core/wtk_stridx.c wtk/core/wtk_kdict.c wtk/core/wtk_if.c wtk/core/fft/wtk_rfft.c wtk/core/wtk_kcls.c
+
+src_cpp=${shell find $(src_dir) -name "*.cpp"}
+
+exclude_dir=qtk/tts/vits
+exclude_c=$(foreach v, $(exclude_dir), $(shell find $(v) -name "*.c"))
+exclude_c+=
+exclude_cpp=$(foreach v, $(exclude_dir), $(shell find $(v) -name "*.cpp"))
+
+
+src_f_c=$(filter-out $(exclude_c),$(src_c))
+c_objs=$(patsubst %.c,%.o,$(src_f_c))
+src_f_cpp=$(filter-out $(exclude_cpp),$(src_cpp))
+cpp_objs=$(patsubst %.cpp,%.o,$(src_f_cpp))
+
+
+lib_objs=$(c_objs) $(cpp_objs)
+
+tool_dir= #test
+
+tool_c=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.c"))
+tool_c+=test/tts/lpcnet_test.c
+tool_e=${patsubst %.c,%,${tool_c}}
+tool_o=${patsubst %.c,%.o,${tool_c}}
+
+tool_cpp=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.cpp"))
+tool_cpp_e=${patsubst %.cpp,%,${tool_cpp}}
+tool_o+=${patsubst %.cpp,%.o,${tool_cpp}}
+#generated tool
+tool_gen=${addprefix "tool/", ${notdir ${patsubst %.o, %, $(tool_o)}}}
+
+
+######################### lib section #####################################
+ifeq ($(use_share), 1)
+lib=./lib/linux/libtts.lpnet.so
+else
+lib=./lib/linux/libtts.lpnet.a
+endif
+
+############ gprof section ###############
+
+gprof_n=
+gprof_log=${gprof_n}.txt
+grpof_dot=${gprof_n}.dot
+gprof_png=${gprof_n}.png
+
+
+############### compile section ###############
+INC =-I . -I wtk/tts -I qtk/tts -I./wtk/tts/include
+
+
+INC+= #-I ./third/onnxruntime-linux-x64-1.12.1/include
+LFLAGS += #-lonnxruntime -L$(pwd)/third/onnxruntime-linux-x64-1.12.1/lib
+
+CC=gcc
+CXX=g++
+
+ifeq (${dist}, 1)
+OF=-O3 -Wno-write-strings #-msse4 -fopenmp
+else
+OF=-g -Wno-write-strings #-msse4 -fopenmp
+endif
+CFLAGS+=$(OF) $(INC)
+WFLAGS+= -Wall #-Werror
+
+LFLAGS+=-lm -lpthread
+
+ifeq ($(use_share), 1)
+	OF+=-fPIC
+endif
+
+ifeq (${use_debug},1)
+	CFLAGS += -DUSE_DEBUG
+endif
+
+ie=$(shell whereis libiconv|grep "so"|wc -l)
+ifeq (${ie},1)
+	LFLAGS += -liconv
+endif
+
+%.o:%.c
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o $@ $<
+
+%.o:%.cpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+
+all:$(lib) tools
+.PHONY: all clean
+
+
+tools:${lib}
+	for i in  ${tool_cpp_e}; \
+	 	do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CXX} $(CFLAGS) -c -o $${i}.o  $${i}.cpp; \
+		${CXX} $(CFLAGS) -o tool/`basename $${i}`  $${i}.o ${lib} $(LFLAGS)  ; \
+	done;
+	for i in  ${tool_e}; \
+		do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CC} $(CFLAGS) ${WFLAGS} -c -o $${i}.o  $${i}.c; \
+		${CXX} $(CFLAGS) ${WFLAGS} -o tool/`basename $${i}`  $${i}.o ${lib} $(LFLAGS) ; \
+	done
+
+$(lib): $(lib_objs)
+	echo "lib="${lib}; 
+	mkdir -p `dirname ${lib}`; 
+	if [ $(use_share) -eq 1 ]; then \
+		$(CXX) $(LDFLAGS) $(CFLAGS) -shared -o $(lib) ${lib_objs}; \
+	else \
+		ar rv $(lib) $(lib_objs); \
+	fi
+
+
+prof:
+	gprof ${gprof_n} >$(gprof_log)
+	python ./shell/gprof2dot.py $(gprof_log) > ${grpof_dot}
+	dot -Tpng -o $(gprof_png) $(grpof_dot)
+
+
+clean:
+	-rm $(lib_objs) $(tool_o) $(tool_gen)
+

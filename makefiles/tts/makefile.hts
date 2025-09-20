@@ -1,0 +1,151 @@
+SHELL=bash
+pwd=${shell pwd}
+
+###################CONFIG#####################
+use_share=1
+dist=1
+
+
+src_dir=wtk/core/cfg wtk/core/json wtk/core/math wtk/core/parse wtk/core/errno wtk/core/pitch wtk/core/rbin wtk/core/text wtk/core/segmenter wtk/lex wtk/os wtk/tts/parser wtk/tts/syn
+src_c=${shell find $(src_dir) -name "*.c"}
+src_c+=wtk/tts/modules/wtk_engtts_api.c wtk/tts/wtk_tts.c wtk/tts/wtk_tts_cfg.c wtk/tts/wtk_mtts.c wtk/tts/wtk_mtts_cfg.c 
+src_c+=wtk/core/wtk_alloc.c wtk/core/wtk_arg.c wtk/core/wtk_array.c wtk/core/wtk_buf.c wtk/core/wtk_hash.c \
+wtk/core/wtk_heap.c wtk/core/wtk_hoard.c wtk/core/wtk_os.c wtk/core/wtk_queue.c wtk/core/wtk_queue2.c \
+wtk/core/wtk_queue3.c wtk/core/wtk_rbtree.c wtk/core/wtk_slist.c wtk/core/wtk_robin.c wtk/core/wtk_robin2.c \
+wtk/core/wtk_str_hash.c wtk/core/wtk_strbuf.c wtk/core/wtk_vpool.c wtk/core/wtk_vpool2.c \
+wtk/core/wtk_time.c wtk/core/wtk_wavfile.c wtk/core/wtk_treenode.c wtk/core/wtk_strpool.c wtk/core/wtk_strdict.c wtk/core/wtk_str_parser.c \
+wtk/core/wtk_str_encode.c wtk/core/wtk_str.c wtk/core/wtk_stack.c wtk/core/wtk_larray.c wtk/core/wtk_fkv.c \
+wtk/core/wavehdr.c wtk/core/wtk_strmsg.c wtk/core/wtk_riff.c wtk/core/wtk_bit_heap.c wtk/core/wtk_sort.c \
+wtk/core/wtk_fkv2.c wtk/core/wtk_stridx.c wtk/core/wtk_kdict.c wtk/core/wtk_if.c
+
+src_cpp=${shell find $(src_dir) -name "*.cpp"}
+
+exclude_dir=
+exclude_c=$(foreach v, $(exclude_dir), $(shell find $(v) -name "*.c"))
+exclude_c+=
+exclude_cpp=$(foreach v, $(exclude_dir), $(shell find $(v) -name "*.cpp"))
+exclude_cpp+=
+
+src_f_c=$(filter-out $(exclude_c),$(src_c))
+c_objs=$(patsubst %.c,%.o,$(src_f_c))
+src_f_cpp=$(filter-out $(exclude_cpp),$(src_cpp))
+cpp_objs=$(patsubst %.cpp,%.o,$(src_f_cpp))
+
+lib_objs=$(c_objs) $(cpp_objs)
+
+tool_dir= #test/tool
+tool_c=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.c"))
+tool_c+=test/tool/tts/tts_hts.c test/tool/tts/tts_hts_api.c
+tool_e=${patsubst %.c,%,${tool_c}}
+tool_o=${patsubst %.c,%.o,${tool_c}}
+
+tool_cpp=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.cpp"))
+tool_cpp_e=${patsubst %.cpp,%,${tool_cpp}}
+tool_o+=${patsubst %.cpp,%.o,${tool_cpp}}
+#generated tool
+tool_gen=${addprefix "tool/", ${notdir ${patsubst %.o, %, $(tool_o)}}}
+
+
+############### DNN SECTION #######################
+#mkl=1
+ifeq ($(mkl),1)
+	DNN_CFLAG=-DUSE_MKL
+	#DNN_LFLAG=-L/opt/intel/mkl/lib/intel64 -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a /opt/intel/mkl/lib/intel64/libmkl_core.a -Wl,--end-group
+    DNN_LFLAG=-mkl=parallel -L/opt/intel/mkl/lib/intel64 -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a /opt/intel/mkl/lib/intel64/libmkl_core.a -Wl,--end-group
+else
+	DNN_CFLAG= 
+	DNN_LFLAG= 
+endif
+
+
+
+######################### lib section #####################################
+ifeq ($(use_share), 1)
+lib=./lib/linux/libtts.hts.so
+else
+lib=./lib/linux/libtts.hts.a
+endif
+############################################################################
+
+
+############ test section ###############
+gprof_n=./tool/tts
+gprof_log=${gprof_n}.txt
+grpof_dot=${gprof_n}.dot
+gprof_png=${gprof_n}.png
+
+
+############### compile section ###############
+INC =-I. -Iwtk/tts -I./wtk/tts/include
+
+#icc=1
+ifeq ($(icc),1)
+	CC=/opt/intel/bin/icc
+	CXX=/opt/intel/bin/icc
+else
+	CC=gcc
+	CXX=gcc
+endif
+
+
+ifeq ($(dist),1)
+	OF=-O3 -Wno-write-strings -Ofast --fast-math -funroll-loops -ffunction-sections -fdata-sections #-pg #-Wno-unused-result # -march=native#-march=native
+	WFLAGS=  -Werror -Werror=implicit-function-declaration -Werror=unused-variable# --fast-math 
+	CFLAGS=$(OF) $(INC) $(DNN_CFLAG)
+else
+	OF=-g -Wno-write-strings #-pg
+	CFLAGS=$(OF) $(INC) $(DNN_CFLAG) -Wno-write-strings  -Wno-unused-result
+	WFLAGS= -Werror -Werror=implicit-function-declaration -Werror=unused-variable
+endif
+LFLAGS=-lm -lpthread -ldl -lrt -lz  ${libs} ${DNN_LFLAG} ${libs} -Wl,--gc-sections
+
+ie=$(shell whereis libiconv|grep "so"|wc -l)
+ifeq (${ie},1)
+	LFLAGS += -liconv
+endif
+
+ifeq ($(use_share), 1)
+	OF+=-fPIC
+endif
+
+%.o:%.c
+	$(CC) $(CFLAGS)  ${WFLAGS}   -c -o $@ $<
+
+%.o:%.cpp
+	$(CXX) $(CFLAGS) ${ATK_INC} -c -o $@ $<
+
+all: ${libs}  $(lib)  tools
+
+#.PHONY:tools 
+
+tools:${lib}
+	for i in  ${tool_cpp_e}; \
+	 	do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CXX} $(CFLAGS) -c -o $${i}.o  $${i}.cpp; \
+		${CXX} $(CFLAGS) -o tool/`basename $${i}`  $${i}.o ${lib} $(LFLAGS)  ; \
+	 done;
+	for i in  ${tool_e}; \
+	 	do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CC} $(CFLAGS) ${WFLAGS} -c -o $${i}.o  $${i}.c; \
+		${CXX} $(CFLAGS) ${WFLAGS} -o tool/`basename $${i}`  $${i}.o ${lib} $(LFLAGS) ; \
+	done
+
+prof:
+	gprof ${gprof_n} >$(gprof_log)
+	python ./shell/gprof2dot.py $(gprof_log) > ${grpof_dot}
+	dot -Tpng -o $(gprof_png) $(grpof_dot)
+
+$(lib): $(lib_objs)
+	echo "lib="${lib}; 
+	mkdir -p `dirname ${lib}`; 
+	if [ $(use_share) -eq 1 ]; then \
+		$(CXX) $(LDFLAGS) $(CFLAGS) -shared -o $(lib) ${lib_objs}; \
+	else \
+		ar rv $(lib) $(lib_objs); \
+	fi
+
+clean:
+	-rm $(lib_objs) $(lib) $(tool_o) $(tool_gen)
+

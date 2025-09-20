@@ -32,8 +32,7 @@ int audio_check_duration_ms=1000; 			// 检测时长
 int audio_check_result = -1;
 uint64_t audio_check_start_time;        // 检测开始时间戳
 int audio_check_running;      			// 检测状态标志
-int mic_first;                                  // 检测时长开始时间标志
-int spk_first;                                  // 检测时长开始时间标志
+int micspk_first;                                  // 检测时长开始时间标志
 int current_time;
 int get_volume_calue=0;  //get volume
 int get_volume_first=0;  //get volume
@@ -45,9 +44,6 @@ double rcd3_elapsed = 0;
 double merge_all=0;
 double gainnet_tm=0.0;
 double time_rcd3 = 0.0;
-static double audio_check_play_tm =0.0;
-static double audio_check_rcd_tm = 0.0;
-
 // static int start_play=0;
 static double last_rcd_time = 0.0;
 LowPassFilter lpf;
@@ -68,7 +64,7 @@ int qtk_mod_am13e2_gainnet3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t);
 
 int qtk_mod_am13e2_usbaudio_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t);
 int qtk_mod_am13e2_lineout_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t);
-// int qtk_mod_am13e2_spk_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t);
+int qtk_mod_am13e2_spk_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t);
 
 int qtk_mod_am13e2_linein_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t);
 int qtk_mod_am13e2_linein_check_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t);
@@ -78,6 +74,7 @@ void qtk_mod_am13e2_on_gainnetbf(qtk_mod_am13e2_t *m, char *data, int len);
 void qtk_mod_am13e2_on_gainnetbf2(qtk_mod_am13e2_t *m, char *data, int len);
 void qtk_mod_am13e2_on_gainnetbf3(qtk_mod_am13e2_t *m, char *data, int len);
 void qtk_mod_am13e2_on_gainnetbf4(qtk_mod_am13e2_t *m, char *data, int len);
+void qtk_mod_am13e2_on_gainnetbf5(qtk_mod_am13e2_t *m, char *data, int len);
 
 int qtk_mod_am13e2_mic_check_rcd_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t);
 int qtk_mod_am13e2_mic_check_play_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t);
@@ -412,14 +409,16 @@ qtk_mod_am13e2_t *qtk_mod_am13e2_new(qtk_mod_am13e2_cfg_t *cfg)
 	m->is_player_start=0;
 	m->is_mic =1;
 	m->is_use_uac = 0;
-	m->audio_check_rcd_feed_end = 0;
-	m->audio_check_play_feed_end = 0;
 	//wtk_debug("=========================>>>>>>>>>>>>>>>>>>>>>>>mic_channel=%d / %d ns=%d\n",m->mic_channel,m->cfg->rcd.channel,m->cfg->rcd.nskip);
 	// wtk_debug("------------------------------>>>>>>>>>>>>>>>>\n");
-	m->left_audiobuf = wtk_strbuf_new(2048, 1.0);
-	wtk_strbuf_reset(m->left_audiobuf);
-	m->all_audiobuf = wtk_strbuf_new(4096, 1.0);
-	wtk_strbuf_reset(m->all_audiobuf);
+	m->speaker_left_audiobuf = wtk_strbuf_new(2048, 1.0);
+	wtk_strbuf_reset(m->speaker_left_audiobuf);
+	m->speaker_all_audiobuf = wtk_strbuf_new(4096, 1.0);
+	wtk_strbuf_reset(m->speaker_all_audiobuf);
+	m->lineout_left_audiobuf = wtk_strbuf_new(2048, 1.0);
+	wtk_strbuf_reset(m->lineout_left_audiobuf);
+	m->lineout_all_audiobuf = wtk_strbuf_new(4096, 1.0);
+	wtk_strbuf_reset(m->lineout_all_audiobuf);
 	m->check_path_buf = wtk_strbuf_new(64,0);
 	// m->mul_path = wtk_strbuf_new(64,0);
 	// m->iis_path = wtk_strbuf_new(64,0);
@@ -499,7 +498,7 @@ qtk_mod_am13e2_t *qtk_mod_am13e2_new(qtk_mod_am13e2_cfg_t *cfg)
 			wtk_debug("gainnetbf3_rtjoin new failed!\n");
 			m->gainnetbf3 = NULL;
 		}
-		wtk_debug("----------------------->>>>>>>>>>gainnetbf3_rtjoin new success!\n");
+			wtk_debug("----------------------->>>>>>>>>>gainnetbf3_rtjoin new success!\n");
 		qtk_gainnetbf_set_notify(m->gainnetbf3, m, (qtk_gainnetbf_notify_f)qtk_mod_am13e2_on_gainnetbf3);
 
 		m->gainnetbf4 = qtk_gainnetbf_new(m->cfg->gainnetbf_cfg);
@@ -509,8 +508,15 @@ qtk_mod_am13e2_t *qtk_mod_am13e2_new(qtk_mod_am13e2_cfg_t *cfg)
 		}
 			wtk_debug("----------------------->>>>>>>>>>gainnetbf4_rtjoin new success!\n");
 		qtk_gainnetbf_set_notify(m->gainnetbf4, m, (qtk_gainnetbf_notify_f)qtk_mod_am13e2_on_gainnetbf4);
+
+		m->gainnetbf5 = qtk_gainnetbf_new(m->cfg->gainnetbf_cfg);
+		if(!m->gainnetbf5){
+			wtk_debug("gainnetbf5_rtjoin new failed!\n");
+			m->gainnetbf5 = NULL;
+		}
+			wtk_debug("----------------------->>>>>>>>>>gainnetbf5_rtjoin new success!\n");
+		qtk_gainnetbf_set_notify(m->gainnetbf5, m, (qtk_gainnetbf_notify_f)qtk_mod_am13e2_on_gainnetbf5);
 	}
-	#if 1
 	if(m->cfg->mic_check_rcd_cfg){
 		wtk_debug("---------------------__>>>>>>>>>>>>>>>>>\n");
 		m->mic_check_rcd = wtk_mic_check_new(m->cfg->mic_check_rcd_cfg);
@@ -522,8 +528,6 @@ qtk_mod_am13e2_t *qtk_mod_am13e2_new(qtk_mod_am13e2_cfg_t *cfg)
 		wtk_mic_check_set_notify(m->mic_check_rcd, m,(wtk_mic_check_notify_f)qtk_mod_am13e2_on_mic_check_rcd);
 		wtk_debug("---------------------__>>>>>>>>>>>>>>>>>\n");
 	}
-	#endif
-	#if 1
 	if(m->cfg->mic_check_play_cfg){
 		m->mic_check_play = wtk_mic_check_new(m->cfg->mic_check_play_cfg);
 		if(!m->mic_check_play){
@@ -532,7 +536,6 @@ qtk_mod_am13e2_t *qtk_mod_am13e2_new(qtk_mod_am13e2_cfg_t *cfg)
 		}
 		wtk_mic_check_set_notify(m->mic_check_play, m,(wtk_mic_check_notify_f)qtk_mod_am13e2_on_mic_check_play);
 	}
-	#endif
 	if(m->cfg->vboxebf_cfg){
 		m->vboxebf = qtk_vboxebf_new(m->cfg->vboxebf_cfg);
 		if(!m->vboxebf){
@@ -586,14 +589,14 @@ qtk_mod_am13e2_t *qtk_mod_am13e2_new(qtk_mod_am13e2_cfg_t *cfg)
 		m->lineout = qtk_play_new(&cfg->lineout);
 	}
 	wtk_debug("--------------------------->>>>>>>>\n");
-	// if(m->cfg->use_speaker){
-	// 	wtk_blockqueue_init(&m->spk_queue);
-	// 	wtk_thread_init(&m->speaker_t,(thread_route_handler)qtk_mod_am13e2_spk_entry, m);
-	// 	wtk_debug("qtk_mod_am13e2_spk_entry is ok!!\n");
-	// 	m->speaker = qtk_play_new(&cfg->speaker);
-	// }
+	if(m->cfg->use_speaker){
+		wtk_blockqueue_init(&m->spk_queue);
+		wtk_thread_init(&m->speaker_t,(thread_route_handler)qtk_mod_am13e2_spk_entry, m);
+		wtk_debug("qtk_mod_am13e2_spk_entry is ok!!\n");
+		m->speaker = qtk_play_new(&cfg->speaker);
+	}
 #endif
-
+	wtk_debug("------------------->>>>>>>>>>>>>>>\n");
 	m->rcd =qtk_record_new(&(m->cfg->rcd));
 	if(!m->rcd){
 		wtk_log_err0(m->log, "record fiald!");
@@ -762,12 +765,12 @@ void qtk_mod_am13e2_delete(qtk_mod_am13e2_t *m)
 			qtk_play_delete(m->lineout);
 		}
 	}
-	// if(m->cfg->use_speaker){
-	// 	wtk_blockqueue_clean(&m->spk_queue);
-	// 	if(m->speaker){
-	// 		qtk_play_delete(m->speaker);
-	// 	}
-	// }
+	if(m->cfg->use_speaker){
+		wtk_blockqueue_clean(&m->spk_queue);
+		if(m->speaker){
+			qtk_play_delete(m->speaker);
+		}
+	}
 	wtk_blockqueue_clean(&m->gainnet_queue);
 	wtk_blockqueue_clean(&m->gainnet2_queue);
 	wtk_blockqueue_clean(&m->gainnet3_queue);
@@ -975,11 +978,11 @@ void qtk_mod_am13e2_output_stop(qtk_mod_am13e2_t *m)
 		wtk_blockqueue_wake(&m->lineout_queue);
 		wtk_thread_join(&m->lineout_t);
 	}
-	// if(m->cfg->use_speaker && m->speaker_run){
-	// 	m->speaker_run = 0;
-	// 	wtk_blockqueue_wake(&m->spk_queue);
-	// 	wtk_thread_join(&m->speaker_t);
-	// }
+	if(m->cfg->use_speaker && m->speaker_run){
+		m->speaker_run = 0;
+		wtk_blockqueue_wake(&m->spk_queue);
+		wtk_thread_join(&m->speaker_t);
+	}
 	if(m->cfg->use_line_in && m->linein_run){
 		m->linein_run = 0;
 		wtk_blockqueue_wake(&m->linein_queue);
@@ -991,9 +994,9 @@ void qtk_mod_am13e2_output_stop(qtk_mod_am13e2_t *m)
 	if(m->lineout_queue.length > 0){
 		qtk_mod_am13e2_clean_queue(m, &m->lineout_queue);
 	}
-	// if(m->spk_queue.length > 0){
-	// 	qtk_mod_am13e2_clean_queue(m, &m->spk_queue);
-	// }
+	if(m->spk_queue.length > 0){
+		qtk_mod_am13e2_clean_queue(m, &m->spk_queue);
+	}
 	if(m->array_vbox_queue.length > 0){
 		qtk_mod_am13e2_clean_queue(m, &m->array_vbox_queue);
 	}
@@ -1075,12 +1078,12 @@ void qtk_mod_am13e2_start(qtk_mod_am13e2_t *m, int is_record)
 			wtk_thread_start(&m->lineout_t);
 			wtk_debug("==========================>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 		}
-		// if(m->cfg->use_speaker && m->speaker_run==0){
-		// 	qtk_play_start(m->speaker);
-		// 	m->speaker_run = 1;
-		// 	wtk_thread_start(&m->speaker_t);
-		// 	wtk_debug("==========================>>>>>>>>>>>>>>>>>>>>>>>>>\n");
-		// }
+		if(m->cfg->use_speaker && m->speaker_run==0){
+			qtk_play_start(m->speaker);
+			m->speaker_run = 1;
+			wtk_thread_start(&m->speaker_t);
+			wtk_debug("==========================>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+		}
 		m->is_output=0;
 	}
 	wtk_debug("==========================>>>>>>>>>>>>>>>>>>>>>>>>>\n");
@@ -1122,11 +1125,11 @@ void qtk_mod_am13e2_stop(qtk_mod_am13e2_t *m)
 			wtk_blockqueue_wake(&m->lineout_queue);
 			wtk_thread_join(&m->lineout_t);
 		}
-		// if(m->cfg->use_speaker){
-		// 	m->speaker_run = 0;
-		// 	wtk_blockqueue_wake(&m->spk_queue);
-		// 	wtk_thread_join(&m->speaker_t);
-		// }
+		if(m->cfg->use_speaker){
+			m->speaker_run = 0;
+			wtk_blockqueue_wake(&m->spk_queue);
+			wtk_thread_join(&m->speaker_t);
+		}
 		m->is_output=1;
 	}
 	if(m->use_record == 0){
@@ -1314,15 +1317,6 @@ void qtk_mod_am13e2_player2_mode(qtk_mod_am13e2_t *m, char *data, int len) //lin
     if(pv == NULL){
 		pv = (short *)wtk_malloc(sizeof(short) * 1 * len);
 	}
-	// qtk_msg_node_t *spk_check;
-	// spk_check = qtk_msg_pop_node(m->msg);
-	// wtk_strbuf_push(spk_check->buf, data, len);
-	// wtk_blockqueue_push(&m->mic_check_play_queue, &spk_check->qn);
-	qtk_msg_node_t *spk_check;
-	spk_check = qtk_msg_pop_node(m->msg);
-	spk_check->type = qtk_mod_am13e2_spk2;
-	wtk_strbuf_push(spk_check->buf, data, len);
-	wtk_blockqueue_push(&m->mic_check_play_queue, &spk_check->qn);
 	memcpy(pv,data,len);
 	int src_pos=0;
 	if(len <= 0){return;}
@@ -1337,30 +1331,6 @@ void qtk_mod_am13e2_player2_mode(qtk_mod_am13e2_t *m, char *data, int len) //lin
 		if(m->cfg->lineout.channel > 1){
 			int i=0;
 			while(i<poslen){
-				// wtk_strbuf_push(msg_node->buf, zdata, 4);
-				// wtk_strbuf_push(msg_node->buf, zdata, 4); 
-				if (m->cfg->use_spkout == 1) {
-					if(m->cfg->use_speaker_left){
-						wtk_strbuf_push(msg_node->buf, data + i, 2);
-					}else{
-						wtk_strbuf_push(msg_node->buf, zdata, 2);
-					}
-					if(m->cfg->use_speaker_right){
-						wtk_strbuf_push(msg_node->buf, data + i+2, 2);
-					}else{
-						wtk_strbuf_push(msg_node->buf, zdata, 2);
-					}
-					
-				} else {
-					wtk_strbuf_push(msg_node->buf, zdata, 4);
-				}
-				if (m->cfg->use_wooferout == 1) {
-					wtk_strbuf_push(msg_node->buf, data + i, 2); 
-					wtk_strbuf_push(msg_node->buf, data + i+2, 2); 
-					// wtk_strbuf_push(msg_node->buf, data + i, 2); 
-				} else {
-					wtk_strbuf_push(msg_node->buf, zdata, 4); 
-				}
 				if (m->cfg->use_headset && m->cfg->use_wooflineout) {
 					wtk_strbuf_push(msg_node->buf, pv + i, 2);
 					wtk_strbuf_push(msg_node->buf, pv + i+2, 2);
@@ -1376,24 +1346,11 @@ void qtk_mod_am13e2_player2_mode(qtk_mod_am13e2_t *m, char *data, int len) //lin
 }
 void qtk_mod_am13e2_player3_mode(qtk_mod_am13e2_t *m, char *data, int len) //speaker
 {
-	// wtk_debug("------------------>>>>len=%d\n",len);
-    // if(pv == NULL){
-	// 	pv = (short *)wtk_malloc(sizeof(short) * 1 * len);
-	// }
-	// double player_start = time_get_ms();
-	// memcpy(pv,data,len);
-	qtk_msg_node_t *spk_check;
-	spk_check = qtk_msg_pop_node(m->msg);
-	spk_check->type = qtk_mod_am13e2_spk2;
-	wtk_strbuf_push(spk_check->buf, data, len);
-	wtk_blockqueue_push(&m->mic_check_play_queue, &spk_check->qn);
 	int src_pos=0;
 	if(len <= 0){return;}
 	int poslen=len>>1<<1;
-	// int poslen =len;
 	// wtk_debug("--------------->>>use_lineout=%d,use_speaker=%d,use_lineout_queue.length=%d,use_spkout=%d,use_speaker_left=%d,use_speaker_right=%d,use_wooferout=%d,lineout.channel=%d\n",m->cfg->use_lineout,m->cfg->use_speaker,m->lineout_queue.length,m->cfg->use_spkout,m->cfg->use_speaker_left,m->cfg->use_speaker_right,m->cfg->use_wooferout,m->cfg->lineout.channel);
 	if(m->cfg->use_lineout && m->cfg->use_speaker){
-		// qtk_process_100hz_lpf((short *)pv,poslen>>1,&lpf);
 		qtk_msg_node_t *msg_node;
 		char zdata[32]={0};
 		msg_node = qtk_msg_pop_node(m->msg);
@@ -1411,6 +1368,22 @@ void qtk_mod_am13e2_player3_mode(qtk_mod_am13e2_t *m, char *data, int len) //spe
 					}else{
 						wtk_strbuf_push(msg_node->buf, zdata, 2);
 					}
+					if (audio_check_request == 1 && audio_check_running) {
+						wtk_debug("------------------------------>>>>\n");
+						if(micspk_first){
+							current_time=time_get_ms();
+							micspk_first=0;
+						}
+						if(time_get_ms()-current_time < audio_check_duration_ms){
+							speak_check_result = continuous_audio_check(m,data, len);
+							wtk_debug("------------------------------>>>>speak_check_result=%d\n",speak_check_result);
+						}
+						wtk_debug("------------------------------>>>>\n");
+						if(speak_check_result != -1){
+							audio_check_running=0;
+							audio_check_request=0;
+						}
+					}
 				} else {
 					wtk_strbuf_push(msg_node->buf, zdata, 4);
 				}
@@ -1421,11 +1394,10 @@ void qtk_mod_am13e2_player3_mode(qtk_mod_am13e2_t *m, char *data, int len) //spe
 				} else {
 					wtk_strbuf_push(msg_node->buf, zdata, 4); 
 				}
-				wtk_strbuf_push(msg_node->buf, zdata, 4);
 				i += 4; 
 			}
 		}
-		wtk_blockqueue_push(&m->lineout_queue, &msg_node->qn);
+		wtk_blockqueue_push(&m->spk_queue, &msg_node->qn);
 		// double player_time = time_get_ms() - player_start;
 		//  wtk_debug("---------------->>>>>>>play_time=%.3fms, lineout_queue_len=%d\n", player_time, m->lineout_queue.length);
 	}
@@ -1494,57 +1466,77 @@ int qtk_mod_am13e2_gainnet_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 			break;
 		case qtk_mod_am13e2_DATA_LINEIN_COUURSEWARE_TOUAC:
 			// wtk_debug("----------------------------------->>>>>>>>>\n");
-			wtk_strbuf_push(lineintouac, msg_node->buf->data, msg_node->buf->pos);
+			int lineintouac_pos=0;
+			while(lineintouac_pos < msg_node->buf->pos) {
+				wtk_strbuf_push(lineintouac, msg_node->buf->data + lineintouac_pos, 2);
+				lineintouac_pos +=4;
+			}
 			break;	
 		default:
 			break;
 		}
-		// wtk_debug("==>use_array=%d use_wx3a=%d sbuf3a->pos-%d\n tbuf3a=%d arraybuf=%d wxbuf=%d\n",m->cfg->use_array,m->cfg->use_wx3a,sbuf3a->pos, tbuf3a->pos, arraybuf->pos, wxbuf->pos);
-		if(m->cfg->use_array == 1 && m->cfg->use_linein_mic && m->cfg->use_linein_courseware_touac == 0){
-			// wtk_debug("-----------------------arraybuf->pos=%d ,lineinbuf->pos=%d\n",arraybuf->pos,lineinbuf->pos);
-			if(arraybuf->pos >= pos && lineinbuf->pos >= pos){
-				wtk_strbuf_reset(tbuf);
-				int i=0;
-				while(i<pos){
-					wtk_strbuf_push(tbuf, arraybuf->data+i, 2);
-					wtk_strbuf_push(tbuf, lineinbuf->data+i, 2);
-					i+=2;
-				}
-				qtk_gainnetbf_feed(m->gainnetbf, tbuf->data, tbuf->pos, 0);
-
-				wtk_strbuf_pop(lineinbuf, NULL, pos);
-				wtk_strbuf_pop(arraybuf, NULL, pos);
-			}
-			if(lineintouac->pos > 0){
-				wtk_strbuf_reset(lineintouac);
-			}
-		}else if(m->cfg->use_array == 1 && m->cfg->use_linein_mic == 0 && m->cfg->use_linein_courseware_touac == 0){
+		// wtk_debug("---->>>m->cfg->use_linein_mic =%d,m->cfg->use_linein_courseware_touac=%d,arraybuf->pos=%d,lineinbuf->pos=%d,lineintouac->pos=%d\n",m->cfg->use_linein_mic,m->cfg->use_linein_courseware_touac,arraybuf->pos,lineinbuf->pos,lineintouac->pos);
+		if(m->cfg->use_meetinglineout){
 			if(arraybuf->pos >= pos){
-				wtk_strbuf_reset(tbuf);
-				int i=0,j=0;
-				while(i<pos){
-					for(j=0;j<2;++j)
-					{
-						wtk_strbuf_push(tbuf, arraybuf->data+i, 2);
+					wtk_strbuf_reset(tbuf);
+					int i=0,j=0;
+					while(i<pos){
+						for(j=0;j<2;++j)
+						{
+							wtk_strbuf_push(tbuf, arraybuf->data+i, 2);
+						}
+						i+=2;
 					}
-					i+=2;
+					qtk_gainnetbf_feed(m->gainnetbf, tbuf->data, tbuf->pos, 0);
+					wtk_strbuf_pop(arraybuf, NULL, pos);
 				}
-				qtk_gainnetbf_feed(m->gainnetbf, tbuf->data, tbuf->pos, 0);
-				wtk_strbuf_pop(arraybuf, NULL, pos);
-			}
-		}else if(m->cfg->use_array == 1 && m->cfg->use_linein_mic == 0 && m->cfg->use_linein_courseware_touac == 1){
-			if(arraybuf->pos >= pos && lineintouac->pos >=pos){
-				wtk_strbuf_reset(tbuf);
-				int i=0,j=0;
-				while(i<pos){
-					wtk_strbuf_push(tbuf, arraybuf->data+i, 2);
-					wtk_strbuf_push(tbuf, lineintouac->data+i, 2);
-					i+=2;
+		}else{
+			if(m->cfg->use_array == 1 && m->cfg->use_linein_mic){
+				wtk_debug("-----------------------arraybuf->pos=%d ,lineinbuf->pos=%d\n",arraybuf->pos,lineinbuf->pos);
+				if(arraybuf->pos >= pos && lineinbuf->pos >= pos){
+					wtk_strbuf_reset(tbuf);
+					int i=0;
+					while(i<pos){
+						wtk_strbuf_push(tbuf, arraybuf->data+i, 2);
+						wtk_strbuf_push(tbuf, lineinbuf->data+i, 2);
+						i+=2;
+					}
+					qtk_gainnetbf_feed(m->gainnetbf, tbuf->data, tbuf->pos, 0);
+
+					wtk_strbuf_pop(lineinbuf, NULL, pos);
+					wtk_strbuf_pop(arraybuf, NULL, pos);
 				}
-				qtk_gainnetbf_feed(m->gainnetbf, tbuf->data, tbuf->pos, 0);
-				
-				wtk_strbuf_pop(arraybuf, NULL, pos);
-				wtk_strbuf_pop(lineintouac, NULL, pos);
+				if(lineintouac->pos > 0){
+					wtk_strbuf_reset(lineintouac);
+				}
+			}else if(m->cfg->use_array == 1 && m->cfg->use_linein_mic == 0 && m->cfg->use_linein_courseware == 0){
+				if(arraybuf->pos >= pos){
+					wtk_strbuf_reset(tbuf);
+					int i=0,j=0;
+					while(i<pos){
+						for(j=0;j<2;++j)
+						{
+							wtk_strbuf_push(tbuf, arraybuf->data+i, 2);
+						}
+						i+=2;
+					}
+					qtk_gainnetbf_feed(m->gainnetbf, tbuf->data, tbuf->pos, 0);
+					wtk_strbuf_pop(arraybuf, NULL, pos);
+				}
+			}else if(m->cfg->use_array == 1 && m->cfg->use_linein_mic == 0 && m->cfg->use_linein_courseware_touac == 1 && m->cfg->use_linein_courseware){
+				if(arraybuf->pos >= pos && lineintouac->pos >=pos){
+					wtk_strbuf_reset(tbuf);
+					int i=0,j=0;
+					while(i<pos){
+						wtk_strbuf_push(tbuf, arraybuf->data+i, 2);
+						wtk_strbuf_push(tbuf, lineintouac->data+i, 2);
+						i+=2;
+					}
+					qtk_gainnetbf_feed(m->gainnetbf, tbuf->data, tbuf->pos, 0);
+					
+					wtk_strbuf_pop(arraybuf, NULL, pos);
+					wtk_strbuf_pop(lineintouac, NULL, pos);
+				}
 			}
 		}
 		qtk_msg_push_node(m->msg, msg_node);
@@ -1612,22 +1604,22 @@ int qtk_mod_am13e2_gainnet2_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 		// wtk_debug("-----------------------m->cfg->use_linein_courseware =%d\n",m->cfg->use_linein_courseware);
 		if(!qn) {continue;}
 		msg_node = data_offset2(qn,qtk_msg_node_t,qn);
-		if(!m->cfg->use_mainlineout && !m->cfg->use_wooflineout && !m->cfg->use_meetinglineout && !m->cfg->use_expandlineout){
-			switch (msg_node->type)
-			{
-			
-			case qtk_mod_am13e2_DATA_IIS:
-				wtk_strbuf_push(i2sbuf, msg_node->buf->data, msg_node->buf->pos);
-				break;
-			case qtk_mod_am13e2_DATA_LINEIN_COUURSEWARE:
-				wtk_strbuf_push(lineincourseware, msg_node->buf->data, msg_node->buf->pos);
-				break;
-			case qtk_mod_am13e2_DATA_UAC:
-				wtk_strbuf_push(uacbuf, msg_node->buf->data, msg_node->buf->pos);
-				break;
-			default:
-				break;
-			}
+		switch (msg_node->type)
+		{
+		
+		case qtk_mod_am13e2_DATA_IIS_TOSPK:
+			wtk_strbuf_push(i2sbuf, msg_node->buf->data, msg_node->buf->pos);
+			break;
+		case qtk_mod_am13e2_DATA_LINEIN_COUURSEWARE:
+			wtk_strbuf_push(lineincourseware, msg_node->buf->data, msg_node->buf->pos);
+			break;
+		case qtk_mod_am13e2_DATA_UAC:
+			wtk_strbuf_push(uacbuf, msg_node->buf->data, msg_node->buf->pos);
+			break;
+		default:
+			break;
+		}
+		if(!m->cfg->use_mainlineout && !m->cfg->use_wooflineout && !m->cfg->use_expandlineout && !m->cfg->use_meetinglineout){
 			// wtk_debug("-------->>>>>i2sbuf.pos=%d,lineincourseware.pos=%d,uacbuf.pos=%d,m.rcd3=%d,linein_cource=%d\n",i2sbuf->pos,lineincourseware->pos,uacbuf->pos,m->cfg->use_rcd3,m->cfg->use_linein_courseware);
 			if(m->cfg->use_rcd4 == 1 && m->cfg->use_linein_courseware && i2sbuf->pos == 0){
 				// wtk_debug("--------------------------->>>>.lineincourseware->pos =%d,uacbuf->pos = %d\n",lineincourseware->pos,uacbuf->pos);
@@ -1652,8 +1644,9 @@ int qtk_mod_am13e2_gainnet2_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 					}
 				}
 			}
-			else if (m->cfg->use_rcd3 == 1 && m->cfg->use_linein_courseware && uacbuf->pos == 0 && i2sbuf->pos !=0 ){
+			else if (m->cfg->use_rcd3 == 1 && m->cfg->use_linein_courseware && uacbuf->pos == 0 && i2sbuf->pos !=0 && m->cfg->use_linein_courseware_touac == 0){
 				if(i2sbuf->pos >= pos && lineincourseware->pos >= pos){
+					wtk_debug("----------------_>>>>>>>>>>>>>>>\n");
 					wtk_strbuf_reset(tbuf);
 					wtk_strbuf_reset(ttbuf);
 					int i=0;
@@ -1678,20 +1671,10 @@ int qtk_mod_am13e2_gainnet2_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 					int i=0;
 					while(i<pos){
 						wtk_strbuf_push(tbuf, i2sbuf->data+i, 2);
-						// wtk_strbuf_push(tbuf, i2sbuf->data+i, 2);
 						wtk_strbuf_push(tbuf, i2sbuf->data+i+2, 2);
-						// wtk_strbuf_push(ttbuf, i2sbuf->data+i+2, 2);
-						// wtk_strbuf_push(tbuf, i2sbuf->data+i+2, 2);
 						i+=4;
 					}
-					// gainnet_tm=time_get_ms();
-					// double feed_start = time_get_ms();
-					// wtk_debug("-------------------->>>>>>>>>>>>>>tbuf->pos=%d\n",tbuf->pos);
 					qtk_mod_am13e2_player3_mode(m,tbuf->data,tbuf->pos);
-					// qtk_gainnetbf_feed(m->gainnetbf2, tbuf->data, tbuf->pos, 0);
-					// qtk_gainnetbf_feed(m->gainnetbf4, ttbuf->data, ttbuf->pos, 0);
-					// double feed_time = time_get_ms() - feed_start;
-					// wtk_debug("----------gainnet2_feedtime=%.3f,tbuf->pos =%d \n",feed_time,tbuf->pos);
 					wtk_strbuf_pop(i2sbuf, NULL, pos);
 				}
 			}
@@ -1728,8 +1711,24 @@ int qtk_mod_am13e2_gainnet2_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 				}
 			}
 		}
+		else{
+			if (m->cfg->use_rcd3 == 1 && uacbuf->pos == 0 && i2sbuf->pos !=0){
+				// wtk_debug("-------=========================>>>>>>>>>>>\n");
+				if(i2sbuf->pos >= pos){
+					wtk_strbuf_reset(tbuf);
+					int i=0;
+					while(i<pos){
+						wtk_strbuf_push(tbuf, i2sbuf->data+i, 2);
+						wtk_strbuf_push(tbuf, i2sbuf->data+i+2, 2);
+						i+=4;
+					}
+					qtk_mod_am13e2_player3_mode(m,tbuf->data,tbuf->pos);
+					wtk_strbuf_pop(i2sbuf, NULL, pos);
+				}
+			}
+		}
 		qtk_msg_push_node(m->msg, msg_node);
-		// fclose(gainnet2_fn);
+			// fclose(gainnet2_fn);
 	}
 	qtk_gainnetbf_feed(m->gainnetbf2, NULL, 0, 1);
 	qtk_gainnetbf_reset(m->gainnetbf2);
@@ -1778,10 +1777,17 @@ int qtk_mod_am13e2_gainnet3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 	lineinmic = wtk_strbuf_new(2048, 1.0);
 	wtk_strbuf_reset(lineinmic);
 	qtk_gainnetbf_start(m->gainnetbf3);
+	qtk_gainnetbf_start(m->gainnetbf5);
 	int lineincnt=0;
 	double wait_start_time = 0;
     int is_waiting = 0;
 	char zdata[32]={0};
+	FILE * gainnet3_fn;
+	gainnet3_fn=fopen("/tmp/gainnet3.pcm","wb");
+	if(gainnet3_fn==NULL){
+		wtk_debug("fopen filed!!\n");
+		exit(1);
+	}
 	while(m->gainnet3_run){
 		qn= wtk_blockqueue_pop(&m->gainnet3_queue,-1,NULL);
 		// wtk_debug("-----------------------==================================\n");
@@ -1792,8 +1798,9 @@ int qtk_mod_am13e2_gainnet3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 		if(m->cfg->use_mainlineout || m->cfg->use_wooflineout || m->cfg->use_meetinglineout || m->cfg->use_expandlineout){
 			switch (msg_node->type)
 			{
-			case qtk_mod_am13e2_DATA_IIS:
+			case qtk_mod_am13e2_DATA_IIS_TOLINEOUT:
 				wtk_strbuf_push(i2sbuf, msg_node->buf->data, msg_node->buf->pos);
+				// wtk_debug("------->>>>>>>i2sbuf->pos = %d\n",i2sbuf->pos);
 				break;
 			case qtk_mod_am13e2_DATA_LINEIN_courseware_TOLINEOUT:
 				wtk_strbuf_push(lineincourseware, msg_node->buf->data, msg_node->buf->pos);
@@ -1806,33 +1813,39 @@ int qtk_mod_am13e2_gainnet3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 				break;
 			case qtk_mod_am13e2_DATA_ARRAY_TOlINEOUT:
 				wtk_strbuf_push(arraybuf, msg_node->buf->data, msg_node->buf->pos);
+				wtk_debug("---------->>>>>>>>>>>>>arraybuf->pos =%d\n",arraybuf->pos);
 				break;
 			default:
 				break;
 			}
-			wtk_debug("-------->>>>>arraymul.pos=%d,i2sbuf.pos=%d,lineincourseware.pos=%d,uacbuf.pos=%d,linein_cource=%d\n",arraybuf->pos,i2sbuf->pos,lineincourseware->pos,uacbuf->pos,m->cfg->use_linein_courseware);
+			// wtk_debug("-------->>>>>arraymul.pos=%d,i2sbuf.pos=%d,lineincourseware.pos=%d,uacbuf.pos=%d,linein_cource=%d\n",arraybuf->pos,i2sbuf->pos,lineincourseware->pos,uacbuf->pos,m->cfg->use_linein_courseware);
 
 			if(m->cfg->use_meetinglineout){
 				if(m->cfg->use_linein_courseware == 0 && m->cfg->use_linein_mic == 0){
-					if(i2sbuf->pos >= pos && arraybuf->pos >= pos) {
+				wtk_debug("------------------__>>>>>>>>>>>>>>>>>>>>\n");
+					if(i2sbuf->pos >= 2*pos && arraybuf->pos >= pos) {
 						wtk_strbuf_reset(tbuf);
 						wtk_strbuf_reset(ttbuf);
 						int i=0;
+						int j=0;
 						while(i<pos){
 							wtk_strbuf_push(tbuf,arraybuf->data+i,2);
-							wtk_strbuf_push(tbuf, i2sbuf->data+i, 2);
+							wtk_strbuf_push(tbuf, i2sbuf->data+j, 2);
 
 							wtk_strbuf_push(ttbuf,arraybuf->data+i,2);
-							wtk_strbuf_push(ttbuf, i2sbuf->data+i+2, 2);
+							wtk_strbuf_push(ttbuf, i2sbuf->data+j+2, 2);
 							i+=2;
+							j+=4;
 						}
+						fwrite(tbuf->data,tbuf->pos,1,gainnet3_fn);
+						fwrite(ttbuf->data,ttbuf->pos,1,gainnet3_fn);
 						qtk_gainnetbf_feed(m->gainnetbf3, tbuf->data, tbuf->pos, 0);
-						qtk_gainnetbf_feed(m->gainnetbf4, ttbuf->data, ttbuf->pos, 0);
-						wtk_strbuf_pop(i2sbuf, NULL, pos);
+						qtk_gainnetbf_feed(m->gainnetbf5, ttbuf->data, ttbuf->pos, 0);
+						wtk_strbuf_pop(i2sbuf, NULL, 2*pos);
 						wtk_strbuf_pop(arraybuf, NULL, pos);
 					}
 				}
-				else if(m->cfg->use_linein_courseware && i2sbuf->pos ==0){
+				else if(m->cfg->use_linein_courseware && i2sbuf->pos ==0 && m->cfg->use_linein_courseware_touac==0){
 					if((lineincourseware->pos >= pos && uacbuf->pos >= pos && arraybuf->pos >= pos) || (lineincourseware->pos > 2*pos)) {
 						wtk_strbuf_reset(tbuf);
 						wtk_strbuf_reset(ttbuf);
@@ -1870,7 +1883,7 @@ int qtk_mod_am13e2_gainnet3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 							i+=2;
 						}
 						qtk_gainnetbf_feed(m->gainnetbf3, tbuf->data, tbuf->pos, 0);
-						qtk_gainnetbf_feed(m->gainnetbf4, ttbuf->data, ttbuf->pos, 0);
+						qtk_gainnetbf_feed(m->gainnetbf5, ttbuf->data, ttbuf->pos, 0);
 						wtk_strbuf_pop(lineincourseware, NULL, pos);
 						wtk_strbuf_pop(i2sbuf, NULL, pos);
 						wtk_strbuf_pop(arraybuf, NULL, pos);
@@ -1896,7 +1909,7 @@ int qtk_mod_am13e2_gainnet3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 							wtk_strbuf_pop(uacbuf, NULL, pos);
 						wtk_strbuf_pop(arraybuf, NULL, pos);
 					}
-				}else if(m->cfg->use_linein_mic && uacbuf->pos ==0){
+				}else if(m->cfg->use_linein_mic && uacbuf->pos ==0 && !m->cfg->use_linein_courseware){
 					if((lineinmic->pos >= pos && i2sbuf->pos >= pos && arraybuf->pos >= pos)) {
 						wtk_strbuf_reset(tbuf);
 						wtk_strbuf_reset(ttbuf);
@@ -1904,11 +1917,15 @@ int qtk_mod_am13e2_gainnet3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 						while(i<pos){
 							wtk_strbuf_push(tbuf,arraybuf->data+i,2);
 							wtk_strbuf_push(tbuf, i2sbuf->data+i, 2);
-							// wtk_strbuf_push(tbuf, i2sbuf->data+i+2, 2);
 							wtk_strbuf_push(tbuf, lineinmic->data+i, 2);
+
+							wtk_strbuf_push(ttbuf,arraybuf->data+i,2);
+							wtk_strbuf_push(ttbuf, i2sbuf->data+i+2, 2);
+							wtk_strbuf_push(ttbuf, lineinmic->data+i, 2);
 							i+=2;
 						}
 						qtk_gainnetbf_feed(m->gainnetbf3, tbuf->data, tbuf->pos, 0);
+						qtk_gainnetbf_feed(m->gainnetbf5, ttbuf->data, ttbuf->pos, 0);
 						wtk_strbuf_pop(lineinmic, NULL, pos);
 						wtk_strbuf_pop(i2sbuf, NULL, pos);
 						wtk_strbuf_pop(arraybuf, NULL, pos);
@@ -1953,10 +1970,10 @@ int qtk_mod_am13e2_gainnet3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 						wtk_strbuf_push(tbuf, lineincourseware->data+i, 2);
 						wtk_strbuf_push(ttbuf, i2sbuf->data+i+2, 2);
 						wtk_strbuf_push(ttbuf, lineincourseware->data+i+2, 2);
-						i+=4;
+						i+=2;
 					}
 					qtk_gainnetbf_feed(m->gainnetbf3, tbuf->data, tbuf->pos, 0);
-					qtk_gainnetbf_feed(m->gainnetbf4, ttbuf->data, ttbuf->pos, 0);
+					qtk_gainnetbf_feed(m->gainnetbf5, ttbuf->data, ttbuf->pos, 0);
 
 					wtk_strbuf_pop(i2sbuf, NULL, pos);
 					wtk_strbuf_pop(lineincourseware, NULL, pos);
@@ -2014,6 +2031,7 @@ int qtk_mod_am13e2_gainnet3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 		}
 		qtk_msg_push_node(m->msg, msg_node);	
 	}
+	fclose(gainnet3_fn);
     qtk_gainnetbf_feed(m->gainnetbf3, NULL, 0, 1);
     qtk_gainnetbf_reset(m->gainnetbf3);
     
@@ -2089,46 +2107,23 @@ int qtk_mod_am13e2_mic_check_rcd_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t){
 	qtk_mod_am13e2_set_cpu(m, t, 0);
 	qtk_msg_node_t *msg_node, *msg_node2;
 	wtk_queue_node_t *qn;
-
 	int len;
 	float *play_vol = (float *)wtk_malloc(sizeof(float) * m->mic_check_rcd->cfg->nmicchannel);
     for (int i = 0; i < m->mic_check_rcd->cfg->nmicchannel; ++i) {
         play_vol[i] = 1.0;
     }
-	int audio_first=1;
-	// FILE * mic_check_rcd_mul;
-	// mic_check_rcd_mul=fopen("/tmp/mic_check_rcd_mul.pcm","wb");
-	// if(mic_check_rcd_mul==NULL){
-	// 	wtk_debug("fopen filed!!\n");
-	// 	exit(1);
-	// }
 	while(m->mic_check_rcd_run){
 		qn= wtk_blockqueue_pop(&m->mic_check_rcd_queue,-1,NULL);
-		// wtk_debug("---------------------->>>>>>>>>>>>>\n")
-		// wtk_debug("---------------============>>>>>>>>>m->mic_check_rcd_queue.length= %d,m->mic_check_rcd->cfg->nmicchannel=%d\n",m->mic_check_rcd_queue.length,m->mic_check_rcd->cfg->nmicchannel);
+		wtk_debug("---------------============>>>>>>>>>m->mic_check_rcd_queue.length= %d,m->mic_check_rcd->cfg->nmicchannel=%d\n",m->mic_check_rcd_queue.length,m->mic_check_rcd->cfg->nmicchannel);
 		if(!qn) {continue;}
 		msg_node = data_offset2(qn,qtk_msg_node_t,qn);
-		if(audio_first)
-		{
-			audio_check_rcd_tm=time_get_ms();
-			audio_first = 0;
-		}
+		// double delay_time=time_get_ms();
 		len = msg_node->buf->pos / (sizeof(short) * m->mic_check_rcd->cfg->nmicchannel);
-		
-		// fwrite(msg_node->buf->data,len,1,mic_check_rcd_mul);
 		wtk_mic_check_feed(m->mic_check_rcd, msg_node->buf->data, len, play_vol,0);
-		// wtk_debug("------------------_>>>>>>>>>>>>>>len =%d\n",len);
+		wtk_debug("------------------_>>>>>>>>>>>>>>len =%d\n",len);
+		// wtk_debug("-------------------------->>>>>>>last_time-first_time = %f\n",time_get_ms()-delay_time);
 		qtk_msg_push_node(m->msg, msg_node);
-		// if(m->audio_check_rcd_feed_end)
-		if(time_get_ms()-audio_check_rcd_tm > 6*1000)
-		{
-			wtk_debug("---------------------->>>>>>>>>>>>>\n");
-			wtk_mic_check_feed(m->mic_check_rcd, NULL, 0, play_vol,1);
-			wtk_mic_check_reset(m->mic_check_rcd);
-			audio_check_rcd_tm=time_get_ms();
-		}
 	}
-	// fclose(mic_check_rcd_mul);
 	wtk_mic_check_feed(m->mic_check_rcd, NULL, 0, play_vol,1);
 	wtk_mic_check_reset(m->mic_check_rcd);
 	return 0;
@@ -2138,78 +2133,22 @@ int qtk_mod_am13e2_mic_check_play_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t){
 	qtk_mod_am13e2_set_cpu(m, t, 0);
 	qtk_msg_node_t *msg_node, *msg_node2;
 	wtk_queue_node_t *qn;
-	wtk_strbuf_t *spk2_buf=NULL;
-	wtk_strbuf_t *sp2buf=NULL;
-	wtk_strbuf_t *sk2_2spbuf=NULL;
-	spk2_buf = wtk_strbuf_new(2048, 1.0);
-	wtk_strbuf_reset(spk2_buf);
-	sp2buf = wtk_strbuf_new(2048, 1.0);
-	wtk_strbuf_reset(sp2buf);
-	sk2_2spbuf = wtk_strbuf_new(4096, 1.0);
-	wtk_strbuf_reset(sk2_2spbuf);
-	int len;
-	int spk_first=1;
-	int pos = m->mic_check_play->cfg->wins;
 	float *play_vol = (float *)wtk_malloc(sizeof(float) * m->mic_check_play->cfg->nmicchannel);
     for (int i = 0; i < m->mic_check_play->cfg->nmicchannel; ++i) {
         play_vol[i] = 1.0;
     }
 	while(m->mic_check_play_run){
 		qn= wtk_blockqueue_pop(&m->mic_check_play_queue,-1,NULL);
+		// wtk_debug("---------------============>>>>>>>>>m->array_vbox_queue.length= %d\n",m->array_vbox_queue.length);
 		if(!qn) {continue;}
 		msg_node = data_offset2(qn,qtk_msg_node_t,qn);
-		switch (msg_node->type)
-		{
-			
-			case qtk_mod_am13e2_spk2:
-				wtk_strbuf_push(spk2_buf, msg_node->buf->data, msg_node->buf->pos);
-				break;
-			case qtk_mod_am13e2_sp2:
-				wtk_strbuf_push(sp2buf, msg_node->buf->data, msg_node->buf->pos);
-				break;
-			default:
-				break;
-		}
-		if(spk2_buf->pos >= pos && sp2buf->pos >= pos)
-		{
-			wtk_strbuf_reset(sk2_2spbuf);
-			int i=0;
-			while(i<pos){
-				wtk_strbuf_push(sk2_2spbuf, spk2_buf->data+i, 2);
-				wtk_strbuf_push(sk2_2spbuf, spk2_buf->data+i+2, 2);
-				wtk_strbuf_push(sk2_2spbuf, sp2buf->data+i, 2);
-				wtk_strbuf_push(sk2_2spbuf, sp2buf->data+i+2, 2);
-				i+=4;
-			}
-		}
-		if(spk_first)
-		{
-			audio_check_play_tm=time_get_ms();
-			spk_first = 0;
-		}
 		// double delay_time=time_get_ms();
-		// wtk_debug("->>>>>m->mic_check_rcd->cfg->nmicchannel=%d\n",m->mic_check_play->cfg->nmicchannel);
-		len = sk2_2spbuf->pos / (sizeof(short) * m->mic_check_play->cfg->nmicchannel);
-#if 1
-		wtk_mic_check_feed(m->mic_check_play,sk2_2spbuf->data, len,play_vol, 0);
-		wtk_strbuf_pop(sp2buf,NULL,pos*2); 
-		wtk_strbuf_pop(spk2_buf,NULL,pos*2);
+		wtk_mic_check_feed(m->mic_check_play, msg_node->buf->data, msg_node->buf->pos,play_vol, 0);
 		// wtk_debug("-------------------------->>>>>>>last_time-first_time = %f\n",time_get_ms()-delay_time);
 		qtk_msg_push_node(m->msg, msg_node);
-		if(time_get_ms()-audio_check_play_tm > 6*1000)
-		{
-			wtk_debug("---------------------->>>>>>>>>>>>>\n");
-			wtk_mic_check_feed(m->mic_check_play, NULL, 0, play_vol,1);
-			wtk_mic_check_reset(m->mic_check_play);
-			audio_check_play_tm=time_get_ms();
-		}
-#endif
 	}
 	wtk_mic_check_feed(m->mic_check_play, NULL, 0, play_vol,1);
 	wtk_mic_check_reset(m->mic_check_play);
-	wtk_strbuf_delete(sk2_2spbuf);
-	wtk_strbuf_delete(sp2buf);
-	wtk_strbuf_delete(spk2_buf);
 	return 0;
 }
 //linein_mic 降噪算法
@@ -2320,20 +2259,29 @@ int qtk_mod_am13e2_merge_rcd_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 		if(!qn) {continue;}
 		msg_node = data_offset2(qn,qtk_msg_node_t,qn);
 		// wtk_debug("----------------------->>>>>>>>use_line_in =%d\n",m->cfg->use_line_in);
+		// wtk_debug("---->>>use_linein_out=%d,use_linein_mic=%d,use_linein_courseware=%d,use_linein_courseware_touac=%d\n",m->use_linein_out,m->cfg->use_linein_mic,m->cfg->use_linein_courseware,m->cfg->use_linein_courseware_touac);
 		wtk_strbuf_reset(linein_buf);
 		int src_pos = 0;
 		int channel = m->cfg->linein_channel; 
-		while(src_pos < msg_node->buf->pos) {
-			wtk_strbuf_push(linein_buf, msg_node->buf->data + src_pos + channel*2, 2);
-			wtk_strbuf_push(linein_buf, msg_node->buf->data + src_pos + channel*2+2, 2);
-			src_pos += channel2 * 2;
-		}
-		// wtk_debug("---->>>use_linein_out=%d,use_linein_mic=%d,use_linein_courseware=%d\n",m->use_linein_out,m->cfg->use_linein_mic,m->cfg->use_linein_courseware);
+			while(src_pos < msg_node->buf->pos) {
+				wtk_strbuf_push(linein_buf, msg_node->buf->data + src_pos + channel*2, 2);
+				wtk_strbuf_push(linein_buf, msg_node->buf->data + src_pos + channel*2+2, 2);
+				src_pos += channel2 * 2;
+			}
 		if(m->cfg->use_line_in && m->use_linein_out && msg_node->type == 2 && m->cfg->use_linein_mic==0){
 			// wtk_debug("------------------_?>>>>>>>>>>>>>>>>>\n");
 			// fwrite(linein_buf->data,linein_buf->pos,1,linein_fn);
-			if(m->cfg->use_linein_courseware == 0 && m->cfg->use_linein_courseware_touac){
-				if(linein_buf->pos > 0) {
+			if(m->cfg->use_linein_courseware && m->cfg->use_linein_courseware_touac){
+				if(m->cfg->use_mainlineout || m->cfg->use_wooflineout || m->cfg->use_meetinglineout || m->cfg->use_expandlineout){
+					if(linein_buf->pos > 0){
+						linein_node = qtk_msg_pop_node(m->msg);
+						linein_node->type = qtk_mod_am13e2_DATA_LINEIN_courseware_TOLINEOUT;
+						wtk_strbuf_push(linein_node->buf, linein_buf->data, linein_buf->pos);
+						wtk_blockqueue_push(&m->gainnet3_queue, &linein_node->qn);
+					//  wtk_debug("--------------------_>>>>>>>>>>linein_buff->pos = %d\n",linein_buf->pos);
+					}	
+				}
+				else if(linein_buf->pos > 0) {
 					linein_node = qtk_msg_pop_node(m->msg);
 					linein_node->type = qtk_mod_am13e2_DATA_LINEIN_COUURSEWARE_TOUAC;
 					wtk_strbuf_push(linein_node->buf, linein_buf->data, linein_buf->pos);
@@ -2362,23 +2310,21 @@ int qtk_mod_am13e2_merge_rcd_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 		}else if(m->cfg->use_line_in && m->use_linein_out && msg_node->type == 2 && m->cfg->use_linein_mic) {
 			// wtk_debug("------------------_?>>>>>>>>>>>>>>>>>\n");
 
-			if(m->cfg->use_meetinglineout){
-				if(linein_buf->pos > 0){
-					linein_node = qtk_msg_pop_node(m->msg);
-					linein_node->type = qtk_mod_am13e2_DATA_LINEIN_MIC_TOLINEOUT;
-					wtk_strbuf_push(linein_node->buf, linein_buf->data, linein_buf->pos);
-                	wtk_blockqueue_push(&m->gainnet3_queue, &linein_node->qn);
-				}	
-			}else{
-				// fwrite(linein_buf->data,linein_buf->pos,1,linein_fn);
-				
-				if(linein_buf->pos > 0) {
-					linein_node = qtk_msg_pop_node(m->msg);
-					wtk_strbuf_push(linein_node->buf, linein_buf->data, linein_buf->pos);
-					wtk_blockqueue_push(&m->linein_queue, &linein_node->qn);
-					// wtk_debug("--------------->>>>>>>m->linein_queue.length=%d\n",m->linein_queue.length);
-				}
+			// if(m->cfg->use_meetinglineout){
+			// 	if(linein_buf->pos > 0){
+			// 		linein_node = qtk_msg_pop_node(m->msg);
+			// 		linein_node->type = qtk_mod_am13e2_DATA_LINEIN_MIC_TOLINEOUT;
+			// 		wtk_strbuf_push(linein_node->buf, linein_buf->data, linein_buf->pos);
+            //     	wtk_blockqueue_push(&m->gainnet3_queue, &linein_node->qn);
+			// 	}	
+			// }else{
+			if(linein_buf->pos > 0) {
+				linein_node = qtk_msg_pop_node(m->msg);
+				wtk_strbuf_push(linein_node->buf, linein_buf->data, linein_buf->pos);
+				wtk_blockqueue_push(&m->linein_queue, &linein_node->qn);
+				wtk_debug("--------------->>>>>>>m->linein_queue.length=%d\n",m->linein_queue.length);
 			}
+			// }
         }
 
 		if(msg_node->type == 1){
@@ -2502,12 +2448,12 @@ int qtk_mod_am13e2_linein_check_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 	if(wtk_file_exist(m->cfg->linein_check_path.data) == 0){
 		data1 = file_read_buf(m->cfg->linein_check_path.data, &dlen);
 		ovalue = atoi(data1);
-		if(ovalue == 0){
-			wtk_debug("=========>>>>>linein on<<<<<<==========\n");
-			m->use_linein_out=1;
-		}else if(ovalue > 0){
+		if(ovalue > 100){
 			wtk_debug("=========>>>>>linein off<<<<<<==========\n");
 			m->use_linein_out=0;
+		}else if(ovalue < 100){
+			wtk_debug("=========>>>>>linein on<<<<<<==========\n");
+			m->use_linein_out=1;
 		}
 		wtk_free(data1);
 		data1=NULL;
@@ -2516,11 +2462,11 @@ int qtk_mod_am13e2_linein_check_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 		data2 = file_read_buf(m->cfg->lineout_check_path.data, &dlen);
 		ovalue = atoi(data2);
 		if(ovalue == 0){
-			wtk_debug("=========>>>>>lineout on<<<<<<==========\n");
-			m->use_lineout_out=1;
-		}else if(ovalue > 0){
 			wtk_debug("=========>>>>>lineout off<<<<<<==========\n");
 			m->use_lineout_out=0;
+		}else if(ovalue > 0){
+			wtk_debug("=========>>>>>lineout on<<<<<<==========\n");
+			m->use_lineout_out=1;
 		}
 		wtk_free(data2);
 		data2=NULL;
@@ -2530,56 +2476,52 @@ int qtk_mod_am13e2_linein_check_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 		data2 = file_read_buf(m->cfg->linein_check_path.data, &dlen);
 		lvalue1 = atoi(data1);
 		lvalue1 = atoi(data1);
-		if(lvalue1 == 0){
-			if(m->use_linein_out == 0){
+		if(lvalue1 > 100){
+			if(m->use_linein_out == 1){
 				offcount++;
 			}
 			if(offcount > 2){
-				if(m->use_linein_out == 0){
-					wtk_debug("=========>>>>>linein on<<<<<<==========\n");
-					qtk_mod_am13e2_proc_write(m,"LINEIN_ON",10);
+				if(m->use_linein_out == 1){
+					wtk_debug("=========>>>>>linein off<<<<<<==========\n");
 				}
-				m->use_linein_out = 1;
+				m->use_linein_out = 0;
 				offcount = 0;
 			}
 			oncount=0;
-		}else if(lvalue1 > 0){
-			if(m->use_linein_out == 1){
+		}else if(lvalue1 < 100){
+			if(m->use_linein_out == 0){
 				oncount++;
 			}
 			if(oncount > 2){
-				if(m->use_linein_out == 1){
-					wtk_debug("=========>>>>>linein off<<<<<<==========\n");
-					qtk_mod_am13e2_proc_write(m,"LINEIN_OFF",11);
+				if(m->use_linein_out == 0){
+					wtk_debug("=========>>>>>linein on<<<<<<==========\n");
 				}
-				m->use_linein_out = 0;
+				m->use_linein_out = 1;
 				oncount = 0;
 			}
 			offcount=0;
 		}
 		if(lvalue2 == 0){
-			if(m->use_lineout_out == 0){
+			if(m->use_lineout_out == 1){
 				offcount++;
 			}
 			if(offcount > 2){
-				if(m->use_lineout_out == 0){
-					wtk_debug("=========>>>>>lineout on<<<<<<==========\n");
-					qtk_mod_am13e2_proc_write(m,"LINEOUT_ON",11);
+				if(m->use_lineout_out == 1){
+					wtk_debug("=========>>>>>linein off<<<<<<==========\n");
 				}
-				m->use_lineout_out = 1;
+				m->use_lineout_out = 0;
 				offcount = 0;
 			}
 			oncount=0;
 		}else if(lvalue2 > 0){
-			if(m->use_lineout_out == 1){
+			if(m->use_lineout_out == 0){
 				oncount++;
 			}
 			if(oncount > 2){
-				if(m->use_lineout_out == 1){
-					wtk_debug("=========>>>>>linein off<<<<<<==========\n");
-					qtk_mod_am13e2_proc_write(m,"LINEOUT_OFF",12);
+				if(m->use_lineout_out == 0){
+					wtk_debug("=========>>>>>linein on<<<<<<==========\n");
 				}
-				m->use_lineout_out = 0;
+				m->use_lineout_out = 1;
 				oncount = 0;
 			}
 			offcount=0;
@@ -2622,18 +2564,21 @@ int qtk_mod_am13e2_rcd3_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 			wtk_wavfile_write(m->iismul, rbuf->data, rbuf->pos);
 		}
 		// wtk_debug("-------------------------->>>>>>>>>>>>>>>>>>>>>>>\n");
+		static double tm4= 0.0;
+		// wtk_debug("==========================>>>>>>>>>>>>>>>>>>>>rcd tm4 = %f\n",time_get_ms()-tm4);
 		if(m->cfg->use_mainlineout || m->cfg->use_wooflineout || m->cfg->use_meetinglineout || m->cfg->use_expandlineout){
-			wtk_debug("------------------>>>>>>>\n");
-			qtk_msg_node_t *msg_node = qtk_msg_pop_node(m->msg);
-			msg_node->type = qtk_mod_am13e2_DATA_IIS;
+			// wtk_debug("------------------>>>>>>>\n");
+			msg_node = qtk_msg_pop_node(m->msg);
+			msg_node->type = qtk_mod_am13e2_DATA_IIS_TOLINEOUT;
 			wtk_strbuf_push(msg_node->buf, rbuf->data, rbuf->pos);
 			wtk_blockqueue_push(&m->gainnet3_queue, &msg_node->qn);
-		}else{
-			qtk_msg_node_t *msg_node = qtk_msg_pop_node(m->msg);
-			msg_node->type = qtk_mod_am13e2_DATA_IIS;
-			wtk_strbuf_push(msg_node->buf, rbuf->data, rbuf->pos);
-			wtk_blockqueue_push(&m->gainnet2_queue, &msg_node->qn);
 		}
+		msg_node = qtk_msg_pop_node(m->msg);
+		msg_node->type = qtk_mod_am13e2_DATA_IIS_TOSPK;
+		wtk_strbuf_push(msg_node->buf, rbuf->data, rbuf->pos);
+		wtk_blockqueue_push(&m->gainnet2_queue, &msg_node->qn);
+
+		tm4 = time_get_ms();
 		// wtk_debug("-------->>>>rbuf->pos=%d, gainnet2_queue_len=%d\n",rbuf->pos, m->gainnet2_queue.length);
 	}
 	wtk_log_log0(m->log,"------- recorde3 end");
@@ -2688,6 +2633,12 @@ int qtk_mod_am13e2_rcd4_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 			// wtk_debug("-----------use_linein_courseware=%d--m->gainnetbf2_run = %d--uacrbuf.pos-= %d\n",m->cfg->use_linein_courseware,m->gainnet2_run,rbuf->pos);
 			wtk_strbuf_push(msg_node->buf, rbuf->data, rbuf->pos);
 			wtk_blockqueue_push(&m->gainnet2_queue, &msg_node->qn);
+			// if(m->cfg->use_meetinglineout){
+			// 	msg_node = qtk_msg_pop_node(m->msg);
+			// 	msg_node->type = qtk_mod_am13e2_DATA_UAC;
+			// 	wtk_strbuf_push(msg_node->buf, rbuf->data, rbuf->pos);
+			// 	wtk_blockqueue_push(&m->gainnet3_queue, &msg_node->qn);
+			// }
 		}
 	}
 	// fclose(uac_fn);
@@ -2698,11 +2649,8 @@ int qtk_mod_am13e2_rcd2_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 {
 	qtk_mod_am13e2_set_cpu(m, t, 1);
 	wtk_strbuf_t *rbuf;
-	wtk_strbuf_t *spk_check_buf=NULL;
 	qtk_msg_node_t *msg_node;
-	qtk_msg_node_t *spk_check_node;
 	int is_first=1;
-	spk_check_buf = wtk_strbuf_new(m->cfg->rcd.buf_time*32*2, 1.0f);
 
 	wtk_debug("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr entry\n");
 	wtk_log_log0(m->log,"------- recorde2 start");
@@ -2721,36 +2669,21 @@ int qtk_mod_am13e2_rcd2_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 		// if(m->cfg->mic_shift != 1.0){
 		// 	qtk_data_change_vol(rbuf->data, rbuf->pos, m->cfg->mic_shift);
 		// }
-		
-		// wtk_debug("rrrrrrrrrrrrr222222222222222222=pos=%d\n",rbuf->pos);
+
 		if((m->cfg->use_log_wav && m->arraymul) || m->log_audio){
 			wtk_wavfile_write(m->arraymul, rbuf->data, rbuf->pos);
 		}
-		wtk_strbuf_reset(spk_check_buf);
-		int src_pos = 0;
-		while(src_pos < rbuf->pos) {
-			wtk_strbuf_push(spk_check_buf,  rbuf->data+ src_pos + 6*2, 2);
-			wtk_strbuf_push(spk_check_buf,  rbuf->data+ src_pos + 6*2+2, 2);
-			src_pos += 8 * 2;
-		}
-		#if 1
-		spk_check_node = qtk_msg_pop_node(m->msg);
-		spk_check_node->type = qtk_mod_am13e2_sp2;
-		wtk_strbuf_push(spk_check_node->buf, spk_check_buf->data, spk_check_buf->pos);
-		wtk_blockqueue_push(&m->mic_check_play_queue, &spk_check_node->qn);
-		#endif
-		// wtk_debug("--------------_>>>>>>>>>>>>>>>>>\n");
+
 		msg_node = qtk_msg_pop_node(m->msg);
 		msg_node->type = 2;
 		// wtk_debug("rrrrrrrrrrrrr222222222222222222=pos=%d\n",rbuf->pos);
 		wtk_strbuf_push(msg_node->buf, rbuf->data, rbuf->pos);
 		wtk_blockqueue_push(&m->merge_rcd_queue, &msg_node->qn);
-		wtk_strbuf_pop(spk_check_buf,NULL,spk_check_buf->pos);
+
 		// wtk_debug("---------------===========>>>>>rcd2_rbuf->pos = %d\n",rbuf->pos);
 		// wtk_debug("---------------===========>>>>>rcd2_merge_rcd_queue.length = %d\n",m->merge_rcd_queue.length);
 	}
 	wtk_log_log0(m->log,"------- recorde2 end");
-	wtk_strbuf_delete(spk_check_buf);
 	return 0;
 }
 
@@ -2807,27 +2740,13 @@ int qtk_mod_am13e2_rcd_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 				qtk_data_change_vol(tmpbuf->data, tmpbuf->pos, m->cfg->mic_shift);
 			}
 		//	mic数据检测请求
-			// if (audio_check_request == 2 && audio_check_running) {
-			// 	if(mic_first)
-			// 	{
-			// 		audio_check_rcd_tm = time_get_ms();
-			// 	}
-			// 	if(time_get_ms()-audio_check_rcd_tm > 6*1000)
-			// 	{
-			// 		audio_check_running = 0;
-			// 		mic_first = 0;
-			// 		m->audio_check_rcd_feed_end = 1;
-			// 		audio_check_rcd_tm = 0.0;
-			// 	}
-			// 	wtk_debug("------------------->>>>>>>>>>>>>>>>\n");
-			// 	msg_node = qtk_msg_pop_node(m->msg);
-			// 	wtk_strbuf_push(msg_node->buf, tmpbuf->data, tmpbuf->pos);
-			// 	wtk_blockqueue_push(&m->mic_check_rcd_queue, &msg_node->qn);
-			// 	wtk_debug("------------->>>>>>>mic_check_rcd_queue.length=%d,tmpbuf->pos=%d\n",m->mic_check_rcd_queue.length,tmpbuf->pos);
-			// }
-			msg_node = qtk_msg_pop_node(m->msg);
-			wtk_strbuf_push(msg_node->buf, tmpbuf->data, tmpbuf->pos);
-			wtk_blockqueue_push(&m->mic_check_rcd_queue, &msg_node->qn);
+			if (audio_check_request == 2 && audio_check_running) {
+				wtk_debug("------------------->>>>>>>>>>>>>>>>\n");
+				msg_node = qtk_msg_pop_node(m->msg);
+				wtk_strbuf_push(msg_node->buf, tmpbuf->data, tmpbuf->pos);
+				wtk_blockqueue_push(&m->mic_check_rcd_queue, &msg_node->qn);
+				wtk_debug("------------->>>>>>>mic_check_rcd_queue.length=%d,tmpbuf->pos=%d\n",m->mic_check_rcd_queue.length,tmpbuf->pos);
+			}
 			//音量值获取
 			if(get_volume_calue == 1){
 				if(get_volume_first){
@@ -2841,13 +2760,16 @@ int qtk_mod_am13e2_rcd_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
 				get_volume_calue=0;
 			}
 			// wtk_debug("rrrrrrrrrrrrr11111111111111111111111=pos=%d\n",rbuf->pos);
+			static double tm3= 0.0;
+			// wtk_debug("==========================>>>>>>>>>>>>>>>>>>>>rcd tm3 = %f\n",time_get_ms()-tm3);
 			if(m->is_mic){
-			msg_node = qtk_msg_pop_node(m->msg);
-			msg_node->type = 1;
-			wtk_strbuf_push(msg_node->buf, tmpbuf->data, tmpbuf->pos);
-			wtk_blockqueue_push(&m->merge_rcd_queue, &msg_node->qn);
-			// wtk_debug("----------------------------------\n");
-			}	
+				msg_node = qtk_msg_pop_node(m->msg);
+				msg_node->type = 1;
+				wtk_strbuf_push(msg_node->buf, tmpbuf->data, tmpbuf->pos);
+				wtk_blockqueue_push(&m->merge_rcd_queue, &msg_node->qn);
+			// wtk_debug("-----------------------------tmpbuf->pos=%d\n",tmpbuf->pos);
+			}
+			tm3=time_get_ms();
 			// wtk_debug("merge_rcd_queue.length =%d,gainnet_queue.length=%d,gainnet2_queue.length=%d,gainnet3_queue.length=%d,denoise_vbox_queue.length=%d\n",m->merge_rcd_queue.length,m->gainnet_queue,m->gainnet2_queue.length,m->gainnet3_queue.length,m->denoise_vbox_queue.length);
 			// wtk_debug("array_queue.length=%d,usbaudio_queue.length=%d,lineout_queue.length=%d,linein_queue.length=%d\n",m->array_vbox_queue.length,m->usbaudio_queue.length,m->lineout_queue.length,m->linein_queue.length);
 	
@@ -3081,70 +3003,70 @@ int qtk_mod_am13e2_lineout_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
   	return 0;
 }
 #endif
-// int qtk_mod_am13e2_spk_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
-// {
-// 	qtk_msg_node_t *msg_node=NULL,*msg_node2=NULL;
-// 	wtk_queue_node_t *qn;
-// 	int first = 1;
-// 	long ret;
-// 	wtk_blockqueue_t *spk_queue;
-// 	int zlen=m->cfg->sil_time*m->cfg->lineout.channel*m->cfg->lineout.sample_rate/1000*2;
-// 	int ucnt;
-// 	double tm,tm2;
+int qtk_mod_am13e2_spk_entry(qtk_mod_am13e2_t *m, wtk_thread_t *t)
+{
+	qtk_msg_node_t *msg_node=NULL,*msg_node2=NULL;
+	wtk_queue_node_t *qn;
+	int first = 1;
+	long ret;
+	wtk_blockqueue_t *spk_queue;
+	int zlen=m->cfg->sil_time*m->cfg->lineout.channel*m->cfg->lineout.sample_rate/1000*2;
+	int ucnt;
+	double tm,tm2;
 
-// 	qtk_mod_am13e2_set_cpu(m, t, 2);
+	qtk_mod_am13e2_set_cpu(m, t, 2);
 	
-// 	char *zerodata = wtk_malloc(zlen);
-// 	memset(zerodata, 0, zlen);
+	char *zerodata = wtk_malloc(zlen);
+	memset(zerodata, 0, zlen);
 
-// 	spk_queue=&(m->spk_queue);
+	spk_queue=&(m->spk_queue);
 
-// 	wtk_debug("-----------> speaker start entry zlen=%d\n",zlen);
-// 	wtk_log_log0(m->log,"-----------> speaker start entry");
+	wtk_debug("-----------> speaker start entry zlen=%d\n",zlen);
+	wtk_log_log0(m->log,"-----------> speaker start entry");
 
-// 	m->play_on=1;
+	m->play_on=1;
 
-//   	while(m->speaker_run){
-// 		// wtk_debug("===================>>>>>>>>>>>>>>\n");
-// 		qn= wtk_blockqueue_pop(spk_queue,-1,NULL);
-// 		// wtk_debug("===================>>>>>>>>>>>>>>\n");
-// 		if(!qn) {
-// 			continue;
-// 			// msg_node = NULL;
-// 			// goto loopcontinue;
-// 		}
-// 		msg_node = data_offset2(qn,qtk_msg_node_t,qn);
+  	while(m->speaker_run){
+		// wtk_debug("===================>>>>>>>>>>>>>>\n");
+		qn= wtk_blockqueue_pop(spk_queue,-1,NULL);
+		// wtk_debug("===================>>>>>>>>>>>>>>\n");
+		if(!qn) {
+			continue;
+			// msg_node = NULL;
+			// goto loopcontinue;
+		}
+		msg_node = data_offset2(qn,qtk_msg_node_t,qn);
 
-// 		if(first){
-// 			wtk_debug("===================>>>>>>>>>>>>>>>>>>>>>>>>>player time=%f\n",time_get_ms());
-// 			ret = qtk_play_write(m->speaker, zerodata, zlen, 1);
-// 			// qtk_play2_write(m->lineout,zerodata,zlen);    ///use_liwei
-// 			wtk_debug("===================>>>>>>>>>>>>>>\n");
-// 			if(ret){
-// 				wtk_debug("play zero buf %ld\n",ret);
-// 				wtk_log_log(m->log,"play zero buf %ld",ret);
-// 			}
-// 			first=0;
-// 		}
+		if(first){
+			wtk_debug("===================>>>>>>>>>>>>>>>>>>>>>>>>>player time=%f\n",time_get_ms());
+			ret = qtk_play_write(m->speaker, zerodata, zlen, 1);
+			// qtk_play2_write(m->lineout,zerodata,zlen);    ///use_liwei
+			wtk_debug("===================>>>>>>>>>>>>>>\n");
+			if(ret){
+				wtk_debug("play zero buf %ld\n",ret);
+				wtk_log_log(m->log,"play zero buf %ld",ret);
+			}
+			first=0;
+		}
 		
-// 		ret = qtk_play_write(m->speaker, msg_node->buf->data, msg_node->buf->pos, 1);
-// 		if(ret < 0){
-// 			wtk_debug("=================>>>>>>>>>>>>write err=%ld\n",ret);
-// 			wtk_log_log(m->log,"=================>>>>>>>>>>>>write err=%d",ret);
-// 		}
-// 		// qtk_play2_write(m->lineout, msg_node->buf->data, msg_nsode->buf->pos); ///use_liwei
-// 		qtk_msg_push_node(m->msg, msg_node);
-// 	}
+		ret = qtk_play_write(m->speaker, msg_node->buf->data, msg_node->buf->pos, 1);
+		if(ret < 0){
+			wtk_debug("=================>>>>>>>>>>>>write err=%ld\n",ret);
+			wtk_log_log(m->log,"=================>>>>>>>>>>>>write err=%d",ret);
+		}
+		// qtk_play2_write(m->lineout, msg_node->buf->data, msg_nsode->buf->pos); ///use_liwei
+		qtk_msg_push_node(m->msg, msg_node);
+	}
 
-// 	if(first==0){
-// 		qtk_play_stop(m->speaker);
-// 	}
+	if(first==0){
+		qtk_play_stop(m->speaker);
+	}
 
-// 	if(zerodata){
-// 		wtk_free(zerodata);
-// 	}
-//   	return 0;
-// }
+	if(zerodata){
+		wtk_free(zerodata);
+	}
+  	return 0;
+}
 void qtk_mod_am13e2_on_vboxebf(qtk_mod_am13e2_t *m, char *data, int len)
 {
 	// qtk_mod_am13e2_player_mode(m, data, len);
@@ -3171,13 +3093,21 @@ void qtk_mod_am13e2_on_vboxebf(qtk_mod_am13e2_t *m, char *data, int len)
 void qtk_mod_am13e2_on_denoise_vboxebf(qtk_mod_am13e2_t *m, char *data, int len)
 {
 	static double tm=0.0;
-	// wtk_debug("=======================>>>>>>>len=%d tm=%f\n",len,time_get_ms() - tm);
+	wtk_debug("=======================>>>>>>>len=%d tm=%f\n",len,time_get_ms() - tm);
 	if(m->cfg->gainnetbf_cfg){
 		qtk_msg_node_t *msg_node;
-		msg_node = qtk_msg_pop_node(m->msg);		
-		msg_node->type = qtk_mod_am13e2_DATA_LINEIN_MIC_TOUAC;
+		msg_node = qtk_msg_pop_node(m->msg);
+		if(m->cfg->use_meetinglineout){
+			msg_node->type = qtk_mod_am13e2_DATA_LINEIN_MIC_TOLINEOUT;
+		}else{		
+			msg_node->type = qtk_mod_am13e2_DATA_LINEIN_MIC_TOUAC;
+		}
 		wtk_strbuf_push(msg_node->buf, data, len);
-		wtk_blockqueue_push(&m->gainnet_queue, &msg_node->qn);
+		if(m->cfg->use_meetinglineout){
+			wtk_blockqueue_push(&m->gainnet3_queue, &msg_node->qn);
+		}else{
+			wtk_blockqueue_push(&m->gainnet_queue, &msg_node->qn);
+		}
 	}else{
 		if(m->cfg->use_out_resample){
 			wtk_resample_feed(m->outresample, data, len, 0);
@@ -3197,14 +3127,15 @@ void qtk_mod_am13e2_on_array_vboxebf(qtk_mod_am13e2_t *m, char *data, int len)
 			meetinglineout = qtk_msg_pop_node(m->msg);
 			meetinglineout->type = qtk_mod_am13e2_DATA_ARRAY_TOlINEOUT;
 			wtk_strbuf_push(meetinglineout->buf, data, len);
+			// wtk_debug("---------len = %d\n",len);
 			wtk_blockqueue_push(&m->gainnet3_queue, &meetinglineout->qn);
-		}else{
+		}
 			qtk_msg_node_t *msg_node;
 			msg_node = qtk_msg_pop_node(m->msg);
 			msg_node->type = qtk_mod_am13e2_DATA_ARRAY;
 			wtk_strbuf_push(msg_node->buf, data, len);
+			// wtk_debug("---------len = %d\n",len);
 			wtk_blockqueue_push(&m->gainnet_queue, &msg_node->qn);
-		}
 	#if 0
 		wtk_debug("-----------<>>>>>use_meetinglineout=%d\n",m->cfg->use_meetinglineout);
 	#endif
@@ -3220,89 +3151,75 @@ void qtk_mod_am13e2_on_array_vboxebf(qtk_mod_am13e2_t *m, char *data, int len)
 
 void qtk_mod_am13e2_on_gainnetbf(qtk_mod_am13e2_t *m, char *data, int len)
 {	
-	
+	// wtk_debug("------------------>>>>>>>>>>>>\n");
 	qtk_mod_am13e2_player_mode(m, data, len);
 }
 void qtk_mod_am13e2_on_gainnetbf2(qtk_mod_am13e2_t *m, char *data, int len) //speaker
 {	
-	wtk_strbuf_push(m->left_audiobuf, data, len);
+	// wtk_debug("-------------------____>>>>>>>>>>>>\n");
+	wtk_strbuf_push(m->speaker_left_audiobuf, data, len);
 }
 void qtk_mod_am13e2_on_gainnetbf3(qtk_mod_am13e2_t *m, char *data, int len) //lineout
 {
-	// qtk_mod_am13e2_player2_mode(m, data, len);
-	wtk_strbuf_push(m->left_audiobuf, data, len);
+	wtk_strbuf_push(m->lineout_left_audiobuf, data, len);
 }
-void qtk_mod_am13e2_on_gainnetbf4(qtk_mod_am13e2_t *m, char *data, int len) 
+void qtk_mod_am13e2_on_gainnetbf4(qtk_mod_am13e2_t *m, char *data, int len) //speaker
 {
 	int i=0;
-	wtk_strbuf_reset(m->all_audiobuf);
+	wtk_strbuf_reset(m->speaker_all_audiobuf);
 	while(i<len){
-		wtk_strbuf_push(m->all_audiobuf,m->left_audiobuf->data+i,2);
-		wtk_strbuf_push(m->all_audiobuf,data+i,2);
+		wtk_strbuf_push(m->speaker_all_audiobuf,m->speaker_left_audiobuf->data+i,2);
+		wtk_strbuf_push(m->speaker_all_audiobuf,data+i,2);
+		i+=4;
+	}
+	wtk_debug("-------------------____>>>>>>>>>>>>\n");
+	qtk_mod_am13e2_player3_mode(m, m->speaker_all_audiobuf->data, m->speaker_all_audiobuf->pos); 
+	wtk_strbuf_pop(m->speaker_left_audiobuf, NULL, len);
+
+}
+void qtk_mod_am13e2_on_gainnetbf5(qtk_mod_am13e2_t *m, char *data, int len) //lineout
+{
+	int i=0;
+	wtk_strbuf_reset(m->lineout_all_audiobuf);
+	while(i<len){
+		wtk_strbuf_push(m->lineout_all_audiobuf,m->lineout_left_audiobuf->data+i,2);
+		wtk_strbuf_push(m->lineout_all_audiobuf,data+i,2);
 		i+=4;
 	}
 	if(m->cfg->use_mainlineout || m->cfg->use_wooflineout || m->cfg->use_meetinglineout || m->cfg->use_expandlineout)
-		qtk_mod_am13e2_player2_mode(m, m->all_audiobuf->data, m->all_audiobuf->pos); 
-	else
-		qtk_mod_am13e2_player3_mode(m, m->all_audiobuf->data, m->all_audiobuf->pos); 
-	wtk_strbuf_pop(m->left_audiobuf, NULL, len);
+		qtk_mod_am13e2_player2_mode(m, m->lineout_all_audiobuf->data, m->lineout_all_audiobuf->pos); 
+	wtk_strbuf_pop(m->lineout_left_audiobuf, NULL, len);
 
 }
 void qtk_mod_am13e2_on_mic_check_rcd(qtk_mod_am13e2_t *m, wtk_mic_check_err_type_t *type, int nchn)
 {
-	char set_buf[128]={0};
 	wtk_debug("------------------------------__>>>>>>>>>>>>>>>>>>>>\n");
-	int i,mic_check_rcd_result=0,ret=0;
+	int i,mic_check_rcd_result=0;
     for (i = 0; i < nchn; ++i) {
-        // printf("%d:%d\n", i, type[i]);
+        printf("%d:%d\n", i, type[i]);
 		if(type[i] != 0)
 		{
 			mic_check_rcd_result = type[i];
 		}
     }
 	mic_check_result = mic_check_rcd_result;
-	FILE *file = fopen("/oem/qdreamer/qsound/miccheck_result.txt", "w");
-	if (file != NULL) {
-		fprintf(file, "%d\n", mic_check_result);
-		wtk_debug("---------------------mic_check_result = %d\n", mic_check_result);
-		fflush(file);
-		{
-		int fd=fileno(file);
-		if(fd>=0){fsync(fd);}
-		}
-		fclose(file);
-	} else {
-		printf("无法打开文件进行写入。\n");
-	}
-	
+	if( mic_check_result!= -1){
+			audio_check_running=0;
+			audio_check_request=0;
+	}	
 }
 void qtk_mod_am13e2_on_mic_check_play(qtk_mod_am13e2_t *m, wtk_mic_check_err_type_t *type, int channenl)
 {
-	char set_buf[128]={0};
-	wtk_debug("------------------------------__>>>>>>>>>>>>>>>>>>>>\n");
-	int i,mic_check_play_result=0,ret=0;
+	channenl = 2;
+	int i,mic_check_play_result=0;
     for (i = 0; i < channenl; ++i) {
-        printf("%d:%d\n", i, type[i]);
+        // printf("%d:%d\n", i, type[i]);
 		if(type[i] != 0)
 		{
 			mic_check_play_result = type[i];
 		}
     }
-	speak_check_result = mic_check_play_result;
-
-	FILE *file = fopen("/oem/qdreamer/qsound/spkcheck_result.txt", "w");
-	if (file != NULL) {
-		fprintf(file, "%d\n", speak_check_result);
-		wtk_debug("---------------------spkcheck_result = %d\n", speak_check_result);
-		fflush(file);
-		{
-		int fd=fileno(file);
-		if(fd>=0){fsync(fd);}
-		}
-		fclose(file);
-	} else {
-		printf("无法打开文件进行写入。\n");
-	}
+	mic_check_result = mic_check_play_result;
 }
 void qtk_mod_am13e2_on_outresample(qtk_mod_am13e2_t *m, char *data, int len)
 {
@@ -3487,25 +3404,31 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 		wtk_debug("====>>>>>read buf=[%s]\n", buf); // 读取到sound_uart发送的请求
 		if (strncmp(buf, "MIC_AUDIO_CHECK", 15) == 0)//检索mic 音频是否正常
 		{
-			// wtk_debug("------------------------------------------------------------<<<<<<\n");
-			// audio_check_request=2;
-			// audio_check_running=1;
-			// mic_first = 1;
-			// FILE *file = fopen("/oem/qdreamer/qsound/miccheck_result.txt", "w");
-			// if (file != NULL) {
-			// 	fprintf(file, "%d\n", mic_check_result);
-			// 	wtk_debug("---------------------mic_check_result = %d\n", mic_check_result);
-			// 	mic_check_result = -1;
-			// 	fflush(file);
-			// 	{
-			// 	int fd=fileno(file);
-			// 	if(fd>=0){fsync(fd);}
-			// 	}
-			// 	fclose(file);
-			// 	//system("sync");
-			// } else {
-			// 	printf("无法打开文件进行写入。\n");
-			// }
+			wtk_debug("------------------------------------------------------------<<<<<<\n");
+			audio_check_request=2;
+			audio_check_running=1;
+			micspk_first = 1;
+			 while (mic_check_result == -1) {
+				usleep(1000);
+			}
+			FILE *file = fopen("/oem/qdreamer/qsound/miccheck_result.txt", "w");
+			if (file != NULL) {
+				fprintf(file, "%d\n", mic_check_result);
+				wtk_debug("---------------------mic_check_result = %d\n", mic_check_result);
+				mic_check_result = -1;
+				fflush(file);
+				{
+				int fd=fileno(file);
+				if(fd>=0){fsync(fd);}
+				}
+				fclose(file);
+				//system("sync");
+			} else {
+				printf("无法打开文件进行写入。\n");
+			}
+			int ret =0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),1);
+			wtk_debug("------------------------------------------------------------<<<<<<\n");
 		}
 	#if 1
 		else if (strncmp(buf, "OUTPUT_INFOR",12) == 0) //音频输出列表
@@ -3571,6 +3494,8 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 			}
 			wtk_debug("----------------------now_delay = %.2f\n",time_get_ms()-outinfor_time);
 			cJSON_Delete(port_list);
+			ret =0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),1);
 		}else if (strncmp(buf, "INPUT_INFOR",11) == 0) //音频输入列表
 		{ 
 			double ininfor_time=time_get_ms();
@@ -3660,6 +3585,8 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 			}
 			wtk_debug("----------------------now_delay = %.2f\n",time_get_ms()-ininfor_time);
 			cJSON_Delete(port_list);
+			ret =0;
+			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),1);
 		}
 		#endif
 		else if (strncmp(buf, "SET_MICVOLUME", 13) == 0)//设置当前麦克风音量级别
@@ -3701,9 +3628,9 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 			wtk_debug("----------------------->>>>>>>>\n");
 			//system("sync");
 			fn=NULL;
-			// ret=0;
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),1);
-		}else if (strncmp(buf,"GET_VOLUME_VALUE",16) == 0)
+			ret=0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),1);
+		}		else if (strncmp(buf,"GET_VOLUME_VALUE",16) == 0)
 		{
 			double start_time = time_get_ms();
 			wtk_debug("------------------------------------------------------------<<<<<<\n");
@@ -3739,44 +3666,44 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 		}
 		else if (strncmp(buf, "SPK_AUDIO_CHECK", 15) == 0)//检索spk 音频是否正常
 		{
-			// wtk_debug("------------------------------------------------------------<<<<<<\n");
-			// int ret =0;
-			// if(!m->cfg->use_speaker|| !m->cfg->use_spkout){
-			// 	ret = 1;
-			// 	m->cfg->use_speaker = 1;
-			// 	m->cfg->use_spkout = 1;
-			// }
-			// audio_check_request=1;
-			// audio_check_running=1;
-			// spk_first = 1;
-			// wtk_debug("------------------------------------------------------------<<<<<<\n");
-			//  while (speak_check_result == -1) {
-			// 	usleep(100);
-			// }
-			// wtk_debug("------------------------------------------------------------<<<<<<\n");
-			// FILE *file = fopen("/oem/qdreamer/qsound/spkcheck_result.txt", "w");
-			// if (file != NULL) {
-			// 	fprintf(file, "%d\n", speak_check_result);
-			// 	wtk_debug("---------------------speak_check_result = %d\n", speak_check_result);
-			// 	speak_check_result = -1;
-			// 	fflush(file);
-			// 	{
-			// 	int fd=fileno(file);
-			// 	if(fd>=0){fsync(fd);}
-			// 	}
-			// 	fclose(file);
-			// 	if(ret == 1){
-			// 		m->cfg->use_speaker = 0;
-			// 	}
-			// 	//system("sync");
-			// } else {
-			// 	printf("无法打开文件进行写入。\n");
-			// }
-			// wtk_debug("------------------------------------------------------------<<<<<<\n");
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),1);
+			wtk_debug("------------------------------------------------------------<<<<<<\n");
+			int ret =0;
+			if(!m->cfg->use_speaker|| !m->cfg->use_spkout){
+				ret = 1;
+				m->cfg->use_speaker = 1;
+				m->cfg->use_spkout = 1;
+			}
+			audio_check_request=1;
+			audio_check_running=1;
+			micspk_first = 1;
+			wtk_debug("------------------------------------------------------------<<<<<<\n");
+			 while (speak_check_result == -1) {
+				usleep(100);
+			}
+			wtk_debug("------------------------------------------------------------<<<<<<\n");
+			FILE *file = fopen("/oem/qdreamer/qsound/spkcheck_result.txt", "w");
+			if (file != NULL) {
+				fprintf(file, "%d\n", speak_check_result);
+				wtk_debug("---------------------speak_check_result = %d\n", speak_check_result);
+				speak_check_result = -1;
+				fflush(file);
+				{
+				int fd=fileno(file);
+				if(fd>=0){fsync(fd);}
+				}
+				fclose(file);
+				if(ret == 1){
+					m->cfg->use_speaker = 0;
+				}
+				//system("sync");
+			} else {
+				printf("无法打开文件进行写入。\n");
+			}
+			wtk_debug("------------------------------------------------------------<<<<<<\n");
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),1);
 		}else if (strncmp(buf, "SET_LINEOUTPATTERN", 18) == 0)//设置 lineout模式
 		{
-			// wtk_debug("-------->>>>>>>>>>>>>>>>>>>>>>SET_LINEOUTPATTERN\n");
+			wtk_debug("-------->>>>>>>>>>>>>>>>>>>>>>SET_LINEOUTPATTERN\n");
 			double set_lineout_time=time_get_ms();
 			int ret;
 			if (sscanf(buf, "SET_LINEOUTPATTERN%d", &ret)== 1){
@@ -3794,7 +3721,7 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 					m->cfg->use_expandlineout=0;
 				}
 				if(ret == 2){
-				#if 0
+				#if 1
 					m->cfg->use_mainlineout=0;
 					m->cfg->use_wooflineout=0;
 					m->cfg->use_meetinglineout=1;
@@ -3832,14 +3759,14 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 			int ret=-2;
 			m->is_mic=1;
 			wtk_debug("-------->>>>>>>>>>>>>>mm->is_mic=%d\n",m->is_mic);
-			// ret=0;
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
+			ret=0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 		}else if (strncmp(buf, "UNENABLE_SPK", 12) == 0)//禁用spk
 		{
 			int ret=-2;
 			m->cfg->use_speaker=0;
 			wtk_debug("-------->>>>>>>>>>>>>>m->speaker_run=%d\n",m->cfg->use_speaker);
-			// ret=0;
+			ret=0;
 			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 			
 		}else if (strncmp(buf, "ENABLE_SPK", 10) == 0)//启用SPK
@@ -3849,31 +3776,24 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 			wtk_debug("-------->>>>>>>>>>>>>>m->speaker_run=%d\n",m->cfg->use_speaker);
 			ret =0;
 			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
-		}else if (strncmp(buf, "USE_UNENABLE_LINEIN", 19) == 0)//禁用LINEIN
+		}else if (strncmp(buf, "UNENABLE_LINEIN_KWS", 19) == 0)//禁用LINEIN
 		{
 			int ret=-2;
-			m->cfg->use_linein_mic=0;
-			m->cfg->use_linein_courseware=0;
-			m->linein_run=0;
-
-			//system("sync");
-			wtk_debug("-------->>>>>>>>>>>>>>m->cfg->use_linein_mic=%d\n",m->cfg->use_linein_mic);
-			wtk_debug("-------->>>>>>>>>>>>>>m->cfg->use_linein_courseware=%d\n",m->cfg->use_linein_courseware);
-			wtk_debug("-------->>>>>>>>>>>>>>m->linein_run=%d\n",m->linein_run);
+			m->cfg->use_linein_courseware_touac = 1;
+			wtk_debug("-------->>>>>>>>>>>>>>m->use_linein_courseware_touac=%d\n",m->cfg->use_linein_courseware_touac);
 			ret=0;
 			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 			
-		}else if (strncmp(buf, "USE_ENABLE_LINEIN", 17) == 0)//启用LINEIN
+		}else if (strncmp(buf, "ENABLE_LINEIN_KWS", 17) == 0)//启用LINEIN
 		{
 
 			int ret=-2;
-			m->cfg->use_line_in=1;
+			// m->cfg->use_line_in=1;
+			m->cfg->use_linein_courseware_touac = 0;
 			// m->cfg->use_linein_mic=1;
 			// m->cfg->use_linein_courseware=1;
 			//system("sync");
-			wtk_debug("-------->>>>>>>>>>>>>>m->cfg->use_linein_mic=%d\n",m->cfg->use_linein_mic);
-			wtk_debug("-------->>>>>>>>>>>>>>m->cfg->use_linein_courseware=%d\n",m->cfg->use_linein_courseware);
-			wtk_debug("-------->>>>>>>>>>>>>>m->linein_run=%d\n",m->linein_run);
+			wtk_debug("-------->>>>>>>>>>>>>>m->use_linein_courseware_touac=%d\n",m->cfg->use_linein_courseware_touac);
 			ret=0;
 			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 		}else if (strncmp(buf, "ENABLE_LINEIN_MIC", 17) == 0)//启用LINEIN_MIC
@@ -3912,14 +3832,14 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 				s=((m->vboxebf->vebf4->inmic_scale-3.5)/(11-3.5))*100;
 				ret=sprintf(buf2,"%d%%",(int)s);
 				wtk_debug("GET_MICVOLUME=%s\n",buf2);
-				// qtk_mod_am13e2_proc_write(m,buf2,strlen(buf2));
+				qtk_mod_am13e2_proc_write(m,buf2,strlen(buf2));
 			}else{
 				float s;
 				wtk_debug("+=====>>>>>>>agc_a=%f\n",m->vboxebf->vebf3->cfg->agc_a);
 				s =( 1- ( ( m->vboxebf->vebf4->cfg->agc_a - 0.19) / (0.69 - 0.19) ) )*100;
 				ret=sprintf(buf2,"%d%%",(int)s);//0.19-0.69
 				wtk_debug("GET_MICVOLUME=%s\n",buf2);
-				// qtk_mod_am13e2_proc_write(m,buf2,strlen(buf2));
+				qtk_mod_am13e2_proc_write(m,buf2,strlen(buf2));
 				// qtk_mod_proc_write(m,"-1",2);
 			}
 			ret = 0;
@@ -3976,46 +3896,46 @@ int qtk_mod_am13e2_proc_read(qtk_mod_am13e2_t *m)
 			wtk_debug("=================m->cfg->use_speaker_left = %d\n",m->cfg->use_speaker_left);
 			wtk_debug("=================m->cfg->use_speaker_right = %d\n",m->cfg->use_speaker_right);
 			wtk_debug("=================m->cfg->use_wooferout = %d\n",m->cfg->use_wooferout);
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 			ret = 0;
 		}else if (strncmp(buf, "SET_MICANC_ON", 13) == 0)//设置麦克风噪声抑制功能的启用状态
 		{
 			int ret=-2;
 			wtk_mask_bf_net_set_denoiseenable(m->avboxebf->mask_bf_net,1);
-			// ret=0;
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
+			ret=0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 			
 		}else if (strncmp(buf, "SET_MICANC_OFF", 14) == 0)
 		{
 			int ret=-2;
 			wtk_mask_bf_net_set_denoiseenable(m->avboxebf->mask_bf_net,0);
-			// ret=0;
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
+			ret=0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 		}else if (strncmp(buf, "SET_MICAGC_ON", 13) == 0)//设置麦克风自动增益控制功能的启用状态
 		{
 			int ret=-2;
 			wtk_mask_bf_net_set_agcenable(m->avboxebf->mask_bf_net,1);
-			// ret=0;
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
+			ret=0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 
 		}else if (strncmp(buf, "SET_MICAGC_OFF", 14) == 0)
 		{
 			int ret=-2;
 			wtk_mask_bf_net_set_agcenable(m->avboxebf->mask_bf_net,0);
-			// ret=0;
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
+			ret=0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 		}else if (strncmp(buf, "SET_MICAEC_ON", 13) == 0)//设置麦克风回声消除功能的启动状态
 		{
 			int ret=-2;
 			wtk_mask_bf_net_set_echoenable(m->avboxebf->mask_bf_net,1);
-			// ret=0;
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
+			ret=0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 		}else if (strncmp(buf, "SET_MICAEC_OFF", 14) == 0)
 		{
 			int ret=-2;
 			wtk_mask_bf_net_set_echoenable(m->avboxebf->mask_bf_net,0);
-			// ret=0;
-			// qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
+			ret=0;
+			qtk_mod_am13e2_proc_write(m,wtk_itoa(ret),abs(ret));
 		}
 
 		
@@ -4051,6 +3971,7 @@ int qtk_mod_am13e2_proc_write(qtk_mod_am13e2_t *m,char *data,int len)
 static void myfunc(int sig, siginfo_t *info, void *ptr)
 {
 	once =1;
+	wtk_debug("---------------->>>>>>>>\n");
 	wtk_thread_start(&mem_t);
     return;
 }

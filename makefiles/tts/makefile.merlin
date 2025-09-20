@@ -1,0 +1,133 @@
+include ./wtk/tts/tts-mer/wtk-extend/tts.mk
+include ./wtk/tts/tts-mer/wtk-extend/cfg.mk
+
+use_share=1
+dist=1
+
+path_root = ./
+path_mer = ${path_root}/wtk/tts/tts-mer
+path_world = ${path_mer}/world
+
+world_dir = $(shell find ${path_world} -maxdepth 4 -type d)
+world_file = $(foreach world_dirs,$(world_dir),$(wildcard $(world_dirs)/*.cpp))
+obj_world = $(patsubst %.cpp,%.o,${world_file})
+mer_dir = $(shell find ${path_mer} -maxdepth 4 -type d | grep -v third/)
+mer_file = $(foreach mer_dirs,$(mer_dir),$(wildcard $(mer_dirs)/*.c))
+obj_mer = $(patsubst %.c,%.o,${mer_file}) ${obj_world}
+
+#${_path_tts}/asr/net/wtk_transcription.o \
+
+obj_syn_tts = \
+${_path_tts}/tts/syn/wtk_syn.o \
+${_path_tts}/tts/syn/wtk_syn_pstream.o \
+${_path_tts}/tts/syn/wtk_syn_sigp.o \
+${_path_tts}/tts/syn/wtk_syn_fft.o \
+${_path_tts}/tts/syn/wtk_syn_cfg.o \
+${_path_tts}/tts/syn/wtk_syn_lc.o \
+${_path_tts}/tts/syn/wtk_syn_dtree_cfg.o \
+${_path_tts}/tts/syn/wtk_syn_dtree.o \
+${_path_tts}/tts/syn/wtk_syn_hmm_cfg.o \
+${_path_tts}/tts/syn/wtk_syn_hmm.o \
+${_path_tts}/tts/syn/wtk_syn_dwin_cfg.o \
+${_path_tts}/tts/syn/wtk_syn_dwin.o
+
+lib_objs = \
+${obj_syn_tts} \
+${obj_mer} \
+${obj_tts}
+
+
+tool_dir=
+tool_c=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.c"))
+tool_c+=test/tool/tts/tts_merlin.c
+tool_e=${patsubst %.c, %, $(tool_c)}
+tool_o=${patsubst %.c, %.o, $(tool_c)}
+
+tool_cpp=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.cpp"))
+tool_cpp_e=${patsubst %.cpp, %, $(tool_cpp)}
+tool_o+=${patsubst %.cpp, %.o, $(tool_cpp)}
+#generated tool
+tool_gen=${addprefix "tool/", ${notdir ${patsubst %.o, %, $(tool_o)}}}
+
+
+######################### lib section #####################################
+ifeq ($(use_share), 1)
+lib=./lib/linux/libtts.merlin.so
+else
+lib=./lib/linux/libtts.merlin.a
+endif
+
+############### compile section ###############
+INC= -I ${path_root} -Iwtk/tts -Iqtk #-Isrc -Idl
+ifeq ($(dist), 1)
+CFLAGS += -O3 -msse4 $(INC)
+else
+CFLAGS += -g -msse4 $(INC) #-pg
+endif
+
+ifeq ($(use_share), 1)
+CFLAGS += -fPIC
+endif
+
+# CXXFLAGS = -g -fPIC
+LFLAGS = -lpthread #-lm -lstdc++
+
+CC=gcc
+CXX=g++
+
+all: tools
+.PHONY : all
+	
+
+tools:${lib}
+	for i in  ${tool_cpp_e}; \
+	do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+			${CXX} $(CFLAGS) -c -o $${i}.o  $${i}.cpp; \
+			${CXX} $(CFLAGS) -o tool/`basename $${i}`  $${i}.o ${lib} $(LFLAGS)  ; \
+	done;
+	for i in  ${tool_e}; \
+		do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+			${CC} $(CFLAGS) ${WFLAGS} -c -o $${i}.o  $${i}.c; \
+			${CXX} $(CFLAGS) ${WFLAGS} -o tool/`basename $${i}` $${i}.o ${lib} ${lib_blas} $(LFLAGS) ; \
+	done
+
+$(lib):$(lib_objs)
+	echo "lib="${lib}; 
+	mkdir -p `dirname ${lib}`; 
+	if [ $(use_share) -eq 1 ]; then \
+		$(CXX) $(LDFLAGS) $(CFLAGS) -shared -o $(lib) ${lib_objs}; \
+	else \
+		ar crv $(lib) $(lib_objs); \
+	fi
+
+%.o: %.c
+	gcc ${CFLAGS} -c $^ -o $@ ${IPATH}
+
+# -Wall -Wunused
+
+%.o: %.cpp
+	gcc ${CFLAGS} -c $^ -o $@ -I ${path_root} -I ${path_world} -lm -Isrc -lstdc++ -Wall -Werror 
+
+#${libgoto}:
+#	cd third;tar -xvf GotoBLAS2-1.13.tar.gz;cd GotoBLAS2;make TARGET=NEHALEM USE_THREAD=0;
+
+clean:
+	-rm $(lib_objs)　$(lib) $(tool_o) $(tool_gen)
+	@echo 'clean successful!'
+
+gprof_n = ./main
+gprof_log = ./output/log
+gprof_dot = ./output/dot
+gprof_png = ./output/pgf.png
+prof:
+	gprof ${gprof_n} > $(gprof_log)
+	python ../tts-lz/shell/gprof2dot.py $(gprof_log) > ${gprof_dot}
+	dot -Tpng -o $(gprof_png) $(gprof_dot)
+
+ram:
+	make use_dev=0 && valgrind --tool=memcheck --leak-check=full --track-origins=yes --log-file=output/val ./main -c tts-res/res/merlin/mer2.cfg -i 你好
+
+massif:
+	make use_dev=0 use_blas=0 && valgrind --tool=massif ./main -c tts-res/res/merlin/mer2.cfg -i 你好

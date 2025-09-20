@@ -1,0 +1,276 @@
+SHELL=bash
+
+src_dir=wtk/tts/cosynthesis wtk/tts/utils
+src_c=${shell find $(src_dir) -name "*.c"}
+src_c+=third/lame/mpglib/common.c \
+third/lame/mpglib/interface.c \
+third/lame/mpglib/tabinit.c \
+third/lame/mpglib/layer1.c \
+third/lame/mpglib/layer2.c \
+third/lame/mpglib/layer3.c \
+third/lame/mpglib/decode_i386.c \
+third/lame/mpglib/dct64_i386.c \
+third/lame/libmp3lame/bitstream.c \
+third/lame/libmp3lame/tables.c \
+third/lame/libmp3lame/lame.c \
+third/lame/libmp3lame/encoder.c \
+third/lame/libmp3lame/psymodel.c \
+third/lame/libmp3lame/mpglib_interface.c \
+third/lame/libmp3lame/quantize.c \
+third/lame/libmp3lame/quantize_pvt.c \
+third/lame/libmp3lame/vbrquantize.c \
+third/lame/libmp3lame/vector/xmm_quantize_sub.c \
+third/lame/libmp3lame/util.c \
+third/lame/libmp3lame/version.c \
+third/lame/libmp3lame/reservoir.c \
+third/lame/libmp3lame/VbrTag.c \
+third/lame/libmp3lame/takehiro.c \
+third/lame/libmp3lame/fft.c \
+third/lame/libmp3lame/set_get.c \
+third/lame/libmp3lame/presets.c \
+third/lame/libmp3lame/gain_analysis.c \
+third/lame/libmp3lame/id3tag.c \
+third/lame/libmp3lame/newmdct.c 
+
+src_c+= wtk/core/wtk_strbuf.c \
+wtk/core/wtk_str_encode.c \
+wtk/core/wtk_str.c \
+wtk/core/wtk_str_hash.c \
+wtk/core/wtk_strpool.c \
+wtk/core/wtk_fkv.c \
+wtk/core/wtk_queue.c \
+wtk/core/wtk_os.c \
+wtk/core/wtk_heap.c \
+wtk/core/wtk_riff.c \
+wtk/core/wtk_wavfile.c \
+wtk/core/wavehdr.c \
+wtk/core/wtk_array.c \
+wtk/core/wtk_larray.c \
+wtk/core/wtk_queue2.c \
+wtk/core/wtk_arg.c \
+wtk/core/wtk_vpool2.c \
+wtk/core/wtk_str_parser.c \
+wtk/core/wtk_robin.c \
+wtk/core/wtk_bit_heap.c \
+wtk/core/cfg/wtk_source.c \
+wtk/core/cfg/wtk_main_cfg.c \
+wtk/core/cfg/wtk_local_cfg.c \
+wtk/core/cfg/wtk_cfg_queue.c \
+wtk/core/cfg/wtk_cfg_file.c \
+wtk/core/cfg/wtk_mbin_cfg.c \
+wtk/core/rbin/wtk_rbin2.c \
+wtk/core/rbin/wtk_rbin.c \
+wtk/core/rbin/wtk_flist.c \
+wtk/core/math/wtk_vector.c \
+wtk/core/math/wtk_matrix.c \
+wtk/core/math/wtk_math.c \
+wtk/core/pitch/wtk_pitch.c \
+wtk/core/pitch/wtk_pitch_cfg.c \
+wtk/core/wtk_sort.c
+
+
+c_objs=$(patsubst %.c,%.o,$(src_c))
+
+src_cpp=${shell find $(src_dir) -name "*.cpp"}
+
+src_cpp+=third/CRF++/tagger.cpp \
+third/CRF++/feature_index.cpp \
+third/CRF++/param.cpp \
+third/CRF++/feature.cpp \
+third/CRF++/feature_cache.cpp \
+third/CRF++/encoder.cpp \
+third/CRF++/node.cpp \
+third/CRF++/path.cpp \
+third/CRF++/lbfgs.cpp
+
+cpp_objs=$(patsubst %.cpp,%.o,$(src_cpp))
+
+
+use_cuda=0
+
+ifeq ($(use_cuda),1)
+	cu_dir=wtk/dnnsvr
+	cu_src=${shell find $(cu_dir) -name "*.cu"}
+	cu_objs=$(patsubst %.cu,%.o,$(cu_src))
+else
+	cu_objs= 
+endif
+
+lib_objs=$(c_objs) $(cpp_objs) $(cu_objs)
+
+tool_dir= #test/tool
+tool_c=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.c"))
+tool_c+=./test/tts/qvoice_cosynthesis.c #./test/tool/stress.c ./test/tool/pos.c  ./test/tool/phrase.c #./test/tool/cosynthesis.c ./test/tool/rbin.c ./test/tool/test_xn.c #./test/tool/fkv_test.c ./test/tool/phrase_weight_fkv.c ./test/tool/mp3_tool.c #./test/tool/nseqlite_test.c #./test/tool/kwdec.c ./test/tool/wsola.c ./test/tool/trietree.c ./test/tool/dtree.c
+tool_e=${patsubst %.c,%,${tool_c}}
+tool_o=${patsubst %.c,%.o,${tool_c}}
+
+
+tool_cpp=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.cpp"))
+tool_cpp_e=${patsubst %.cpp,%,${tool_cpp}}
+tool_o+=${patsubst %.cpp,%.o,${tool_cpp}}
+#generated tool
+tool_gen=${addprefix "tool/", ${notdir ${patsubst %.o, %, $(tool_o)}}}
+
+############### DNN SECTION #######################
+#mkl=1
+
+
+
+######################################################
+
+
+######################### lib section #####################################
+#libgoto=./third/GotoBLAS2/libgoto2.a
+#libcrfpp=third/CRF++/.libs/libcrfpp.a
+#libmp3lame=third/lame/libmp3lame/.libs/libmp3lame.a
+
+ifeq ($(mkl),1)
+	libs=    
+else
+	libs=${libcrfpp} ${libgoto} #${libmp3lame} #${libspeex} ${libspeexdsp}
+
+endif 
+############################################################################
+
+
+############ test section ###############
+gprof_n=./a.out
+gprof_n=./tool/kwfst
+#gprof_n=./tool/fstconf
+#gprof_n=./tool/parm
+gprof_log=a.txt
+grpof_dot=a.dot
+gprof_png=a.png
+
+
+############### compile section ###############
+INC =-I.  -I ./third -I./wtk/tts/cosynthesis/ -I./wtk/tts/cosynthesis/dtree/ -I ./wtk/tts/cosynthesis/front_end/include/ -I ./wtk/tts/cosynthesis/front_end/lang/cmu_us_timix/ -I ./wtk/tts/cosynthesis/front_end/lang/cmulex/ -I ./wtk/tts/cosynthesis/front_end/lang/usenglish/ -I ./wtk/tts/cosynthesis/front_end/interface/ -I ./wtk/tts/cosynthesis/front_end/ -I third/include -I third/CRF++ -Ithird/lame -I third/lame/include -Ithird/lame/libmp3lame -Ithird/lame/mpglib -D USE_CRF -DUSE_PHRASE #-D USE_RNN  #-I ./third/speex-1.2beta2/include/
+
+#icc=1
+ifeq ($(icc),1)
+	CC=/opt/intel/bin/icc
+	CXX=/opt/intel/bin/icc
+	DNN_CFLAG=-DUSE_MKL
+	INC+=-I /opt/intel/mkl/include
+	#DNN_LFLAG=-L/opt/intel/mkl/lib/intel64 -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a /opt/intel/mkl/lib/intel64/libmkl_core.a -Wl,--end-group
+    DNN_LFLAG=-mkl=parallel -L/opt/intel/mkl/lib/intel64 -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a /opt/intel/mkl/lib/intel64/libmkl_core.a -Wl,--end-group
+else
+	#CC=/home/dm2/work/project/mywork/power_lower/bbk/dicpen_rk3326_linux/buildroot/output/rockchip_rk3326_64/host/bin/aarch64-buildroot-linux-gnu-gcc
+	#CXX=/home/dm2/work/project/mywork/power_lower/bbk/dicpen_rk3326_linux/buildroot/output/rockchip_rk3326_64/host/bin/aarch64-buildroot-linux-gnu-g++
+	#STRIP=/home/dm2/work/project/mywork/power_lower/bbk/dicpen_rk3326_linux/buildroot/output/rockchip_rk3326_64/host/bin/aarch64-buildroot-linux-gnu-strip
+	CC=gcc
+	CXX=g++
+	STRIP=strip
+endif
+
+avx=0
+ifeq ($(avx),1)
+	AVX_FLAGS=-mavx -DUSE_AVX
+endif
+
+THIRDFLAGS=-DHAVE_CONFIG_H
+
+isfiec=1
+ifeq ($(isfiec),1)
+	FPIEC= -fPIC -fvisibility=hidden   #if gen tool,please comment -fvisibility=hidden
+else
+	FPIEC= #-fPIE
+endif
+
+dist=1
+ifeq ($(dist),1)
+	OF=-O3 #-g  #-march=native
+	WFLAGS=-Werror --fast-math  -Ofast  -funroll-loops -Wno-unused-result  #-march=native
+	CFLAGS=-Werror $(OF) $(INC) $(DNN_CFLAG) $(AVX_FLAGS) -D CST_AUDIO_LINUX $(THIRDFLAGS) $(FPIEC) #-DSQLITE_ENABLE_FTS3	-DSQLITE_ENABLE_FTS3_PARENTHESIS
+else
+	OF= -g -Werror
+	CFLAGS= $(OF) $(INC) $(DNN_CFLAG) -Wno-write-strings  -D CST_AUDIO_LINUX -DCONCA_DEBUG $(THIRDFLAGS) $(FPIEC) -fstack-protector-all -Wswitch -Wunused-value -Wunused-variable -Wreturn-type -Wuninitialized -Wnonnull -Wmaybe-uninitialized -Warray-bounds -Winit-self -Wmissing-braces -Wunused-but-set-variable -Wunused-label -ggdb -fsanitize=address -fno-omit-frame-pointer -fsanitize=leak #-D RESOURSE_FILE_ENCRYPTED #-DSQLITE_ENABLE_FTS3	-DSQLITE_ENABLE_FTS3_PARENTHESIS
+	WFLAGS=#-Werror
+endif
+LFLAGS=-lm -lpthread -ldl -lrt -lstdc++ #${libs} ${DNN_LFLAG} #--static #-lasound
+
+ifeq ($(use_cuda),1)
+	CFLAGS+=-D USE_GPU -I 	/usr/local/cuda/include/
+	LFLAGS+=-lcudart -lcublas -L/usr/local/cuda/lib64 -L /usr/local/cuda/lib64
+endif
+
+ie=$(shell whereis libiconv|grep "so"|wc -l)
+ifeq (${ie},1)
+	#LFLAGS += -liconv
+endif
+
+ifeq ($(isfiec), 1)
+	lib=lib/linux/libtts.conca.so
+else
+	lib=lib/linux/libtts.conca.a
+endif
+
+
+%.o:%.cu
+	nvcc -I . -c $< -o $@ --use_fast_math  -O3; # -arch sm_20;
+
+%.o:%.c
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o $@ $<;  
+
+%.o:%.cpp
+	$(CXX) $(CFLAGS) ${ATK_INC} -c -o $@ $<
+
+all: ${libs}  $(lib) tools
+
+third/sqlite/sqlite3.o:./third/sqlite/sqlite3.c
+	$(CC) $(CFLAGS) -c -o $@ $< 	
+
+#.PHONY:tools 
+
+tools:${lib}
+	for i in  ${tool_cpp_e}; do \
+		echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CXX} $(CFLAGS) -c -o $${i}.o  $${i}.cpp; \
+		${CXX} $(CFLAGS) -o tool/`basename $${i}`  $${i}.o ${lib} $(LFLAGS)  ; \
+	done;
+	for i in  ${tool_e}; do \
+		echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CC} $(CFLAGS) ${WFLAGS} -c -o $${i}.o  $${i}.c; \
+		${CXX} $(CFLAGS) ${WFLAGS} -o tool/`basename $${i}`  $${i}.o ${lib} $(LFLAGS) ; \
+	done; 
+
+prof:
+	gprof ${gprof_n} >$(gprof_log)
+	python ./shell/gprof2dot.py $(gprof_log) > ${grpof_dot}
+	dot -Tpng -o $(gprof_png) $(grpof_dot)
+
+
+$(lib): $(lib_objs)
+	mkdir -p lib; \
+	if [ "x${isfiec}" == "x1" ]; then \
+		echo "gen xx.so..."; \
+		${CC} -shared -o $(FPIEC) -o  $(lib) $(lib_objs) $(libs) $(LFLAGS); \
+		cp $(lib) $(lib).debug; \
+		${STRIP} $(lib); \
+	else \
+		echo "gen xx.a..."; \
+		ar rv $(lib) $(lib_objs) ; \
+	fi;
+
+t:
+	valgrind  --log-file="v.log" --leak-check=full --show-reachable=yes --track-origins=yes  $(test) >1.txt
+
+tx:
+	valgrind --leak-check=full --show-reachable=yes --track-origins=yes   ./tool/fstmd -c ./res/aitv.0.0.1/fstmd.cfg   -d false -debug -p 8080 >v.log 2>&1
+
+#${libgoto}:
+	#cd third;tar -xvf GotoBLAS2-1.13.tar.gz;cd GotoBLAS2;make TARGET=NEHALEM USE_THREAD=0;
+
+#${libcrfpp}:
+	#cd third;tar -xvf CRF++.tar.gz;cd CRF++;./configure;make clean all;
+
+#${libmp3lame}:
+#	cd third;tar -xvf lame.tar.gz;cd lame;./configure;make clean all;
+
+clean:
+	-rm $(lib_objs) $(lib) $(tool_o) $(tool_gen)
+
+
+#valgrind  --log-file="v.log" --leak-check=full --show-reachable=yes --track-origins=yes  ./$(test)	

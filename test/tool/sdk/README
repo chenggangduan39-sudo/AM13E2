@@ -1,0 +1,69 @@
+项目:
+   圆周率-信号处理:
+   Note:  
+   xmake f -c --with-jni=y --with-sdk=y --with-bfio=y --with-tinyalsa=y --ndk=/home/dm/work/env/android/NDK/android-ndk-r23c --android_sdk=/home/dm/work/env/android/SDK --plat=android -k shared
+   #64bit
+   xmake f -c --with-jni=y --with-sdk=y --with-bfio=y --with-tinyalsa=y --ndk=/home/dm/work/env/android/NDK/android-ndk-r23c --android_sdk=/home/dm/work/env/android/SDK --plat=android -k shared --arch=arm64-v8a
+   
+   linux:
+   xmake f -c --with-sdk=y --with-bfio=y --sdk-use-audio=n -k shared -m debug
+   
+   注: --sdk-use-audio默认开
+      linux下:
+          sdk/xmake.lua 需要注释掉 add_files('audio/**.c')，也就关闭--sdk-use-audio=n
+      生成目标平台项目提交库需要做如下处理:
+      xmake.lua 注释掉 --add_links('asound')     #目标平台不支持
+      sdk/xmake.lua 需要注释掉
+        add_files('dns/**.c')
+        add_files('codec/keros/**.c')
+        add_files('codec/timer/**.c')
+        add_files('codec/upload/**.c')
+        或者说只需要
+            add_files('httpc/**.c')
+        add_files('nk/**.c')
+        add_files('session/**.c')
+        add_files('util/**.c')
+        add_files('engine/*.c')
+        add_files('engine/comm/**.c')
+        add_files('engine/cloud/**.c')
+        add_files('module/*.c')
+        add_files('codec/oggdec/**.c')
+        add_files('codec/oggenc/**.c')
+        add_files('spx/**.c')
+
+
+      wtk/bfio/xmake.lua 需要注释掉如下(否则会报一些函数未定义, android系统是否需要，还未验证)， 因为本项目中需要这两文件
+        --remove_files('maskdenoise/celt_lpc.c', 'maskdenoise/pitch.c')   #(按照注释移除这两文件应该是与opus deps冲突)
+        关于上述，还是需要使用方式做选择区分，避免手动的修改，从而造成未同步带来的问题。
+        
+   #实例工具
+   xmake b -rv sdk_engine
+   #实例执行
+   build/linux/x86_64/debug/sdk_engine -i /home/dm/Downloads/output.wav -o output.wav -p "role=tinybf;cfg=res/sdk/project/yuanzhoulv/main.cfg;use_bin=0;use_thread=0;"
+   #bin
+   build/linux/x86_64/debug/sdk_engine -i /home/dm/Downloads/output.wav -o output.wav -p "role=tinybf;cfg=res/sdk/project/yuanzhoulv.bin;use_bin=1;use_thread=0;"
+   
+   #资源处理
+   #配置核查、更新
+   vim -d res/cfg/bfio/gainnet_bf_stereo.v.0.0.1.48k.cfg res/sdk/project/yuanzhoulv/gainnet_bf_stereo.v.0.0.1.48k.cfg
+   #依赖资源确认差异、更新
+   diff res/bin/gainnet2_denoise_w2048_b68_8_8_48k_lm3_yzl_dr_g5.88_0.294.bin res/sdk/project/yuanzhoulv/gainnet2_denoise_w2048_b68_8_8_48k_lm3_yzl_dr_g5.88_0.294.bin
+   diff res/bin/gainnet_agc2_w2048_b68_8_8_48k_yzl_0.196_2.94.bin res/sdk/project/yuanzhoulv/gainnet_agc2_w2048_b68_8_8_48k_yzl_0.196_2.94.bin 
+   #打包
+   ./tools/rbin -z 1 -f submit/yuanzhoulv/yuanzhoulv.20231009.bin -d res/sdk/project/yuanzhoulv
+   
+   
+   音频处理:
+   sox -t raw -r 48k -e signed-integer  -b 16 -c 2 /home/dm/Downloads/1697454476315input.pcm  -t wavpcm test.2.wav
+   
+   内核验证（来源李霄）
+    build/linux/x86_64/debug/bfio_gainnet_bf_stereo -c res/cfg/bfio/gainnet_bf_stereo.v.0.0.1.48k.cfg -i yzl.tmp.wav -o tmp.wav
+   
+   #关联资源
+   bin/gainnet2_denoise_w2048_b68_8_8_48k_lm3_yzl_dr.bin
+   bin/gainnet_agc2_w2048_b68_8_8_48k_yzl_0.196_2.94.bin
+   
+   #检测未定义符号
+   nm ./build/linux/x86_64/debug/libqtk.so |awk '$1~/U/'
+   问题:
+   

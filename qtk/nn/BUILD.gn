@@ -1,0 +1,50 @@
+declare_args() {
+  is_nn_debug = false
+  use_nn_opt = true
+}
+
+source_set("nn") {
+    sources = [
+        "qtk_nn_profiler.c",
+        "qtk_nn_profiler.h",
+        "qtk_nn_op.h",
+        "qtk_nn_op.c",
+        "vm/qtk_nn_vm.c",
+        "vm/qtk_nn_vm.h",
+        "vm/qtk_nn_vm_tensor.h",
+        "vm/qtk_nn_vm_tensor.c",
+    ]
+
+    defines = []
+    include_dirs = []
+
+    if (target_cpu == "x64") {
+        include_dirs += [ "../../third/ARM_NEON_2_x86_SSE" ]
+    }
+
+    if (is_nn_debug) {
+        sources += [
+            "qtk_nn_debug.c",
+            "qtk_nn_debug.h"
+        ]
+        defines += [
+            "QBL_DEBUG"
+        ]
+    }
+
+    if (use_nn_opt) {
+        defines += [
+            "QTK_NN_USE_OPT"
+        ]
+    }
+
+    deps = [
+        "//qtk/os:tick",
+        "//qtk/core:min_heap",
+        "//qtk/numeric:ndarray_iter",
+        "//qtk/core:io",
+        "//qtk/linalg:gemm",
+        "//wtk/core:os",
+        "//qtk/os:file"
+    ]
+}

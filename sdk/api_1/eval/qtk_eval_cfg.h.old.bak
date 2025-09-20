@@ -1,0 +1,44 @@
+﻿#ifndef QTK_API_EVALC_QTK_EVAL_CFG
+#define QTK_API_EVALC_QTK_EVAL_CFG
+
+#include "wtk/core/cfg/wtk_main_cfg.h"
+#include "wtk/core/cfg/wtk_mbin_cfg.h"
+#include "wtk/core/cfg/wtk_source.h"
+#include "wtk/edu/eval/engsnt/wtk_engsnt_cfg.h"
+
+#include "qtk/util/httpzc/qtk_httpzc_cfg.h"
+#include "qtk/session/qtk_session.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef struct qtk_eval_cfg qtk_eval_cfg_t;
+struct qtk_eval_cfg
+{
+	qtk_httpzc_cfg_t httpzc;
+	wtk_engsnt_cfg_t *engsnt;
+	char *engsnt_fn;
+	wtk_main_cfg_t *main_cfg;
+	wtk_mbin_cfg_t *mbin_cfg;
+	unsigned use_cldeval:1;
+	unsigned use_phone_ml:1;
+};
+
+int qtk_eval_cfg_init(qtk_eval_cfg_t *cfg);
+int qtk_eval_cfg_clean(qtk_eval_cfg_t *cfg);
+int qtk_eval_cfg_update_local(qtk_eval_cfg_t *cfg,wtk_local_cfg_t *main);
+int qtk_eval_cfg_update(qtk_eval_cfg_t *cfg);
+int qtk_eval_cfg_update2(qtk_eval_cfg_t *cfg,wtk_source_loader_t *sl);
+
+void qtk_eval_cfg_update_params(qtk_eval_cfg_t *cfg,wtk_local_cfg_t *params);
+void qtk_eval_cfg_update_option(qtk_eval_cfg_t *cfg,qtk_option_t *opt);
+
+qtk_eval_cfg_t* qtk_eval_cfg_new(char *cfg_fn);
+void qtk_eval_cfg_delete(qtk_eval_cfg_t *cfg);
+
+qtk_eval_cfg_t* qtk_eval_cfg_new_bin(char *bin_fn);
+void qtk_eval_cfg_delete_bin(qtk_eval_cfg_t *cfg);
+#ifdef __cplusplus
+};
+#endif
+#endif

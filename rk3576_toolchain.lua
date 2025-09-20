@@ -1,0 +1,12 @@
+toolchain("rk3576")
+	set_kind("standalone")
+	set_bindir("/home/why/tool/RK3576/host_3576/bin")
+	host="aarch64-buildroot-linux-gnu-"
+	set_toolset("cc", host.."gcc")
+	set_toolset("cxx", host.."g++")
+	set_toolset("ld", host.."g++")
+	set_toolset("ar", host.."ar")
+	set_toolset("as", host.."as")
+	set_toolset("strip", host.."strip")
+	set_toolset("sh", host.."g++")
+toolchain_end()

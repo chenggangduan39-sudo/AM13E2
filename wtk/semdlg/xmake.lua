@@ -1,0 +1,13 @@
+target('qtk')
+    add_files(
+        '*.c',
+        'cls/**.c',
+        'kg/**.c',
+        'kgkv/**.c',
+        'nlpemot/**.c',
+        'owlkg/**.c',
+        'semfld/**.c',
+        'semfst/**.c',
+        'tfidf/**.c'
+    )
+target_end()

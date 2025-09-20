@@ -1,0 +1,15 @@
+
+--此行及以下内容将会被忽略--
+
+D    kws/qtk_svprint.c
+D    kws/qtk_svprint.h
+D    kws/qtk_svprint_cfg.c
+D    kws/qtk_svprint_cfg.h
+AM   kws/wtk_svprint.c
+AM   kws/wtk_svprint.h
+AM   kws/wtk_svprint_cfg.c
+AM   kws/wtk_svprint_cfg.h
+M    vad/wtk_vad_cfg.c
+M    wakeup/wtk_kwake.c
+M    wakeup/wtk_kwake.h
+M    wakeup/wtk_kwake_cfg.c
