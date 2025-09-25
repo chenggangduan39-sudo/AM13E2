@@ -1,0 +1,78 @@
+#===================================== src ============================================
+arm_src_files := 
+  
+common_src_files := \
+f2c_blas.c \
+f2c.c \
+f2c_c_lapack.c \
+f2c_config.c \
+f2c_d_lapack.c \
+f2c_lapack.c \
+f2c_s_lapack.c \
+f2c_z_lapack.c \
+sgesvd.c \
+sgetri.c \  
+  
+  
+#src_c= $(filter-out $(arm_exclude_files),$(common_src_files) $(arm_src_files))
+src_c=$(common_src_files) $(arm_src_files)
+src_objc=$(filter %.o,$(patsubst %.c,%.o,$(src_c)))
+src_objs=$(filter %.o,$(patsubst %.S,%.o,$(src_c)))
+objs=$(src_objc) $(src_objs)
+
+#===================================== compile ========================================
+NDK_HOME=/home/why/soft/android-ndk-r12b-linux-x86_64/android-ndk-r12b
+BIN_PATH=${NDK_HOME}/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin
+
+CC=${BIN_PATH}/arm-linux-androideabi-gcc
+CXX=${BIN_PATH}/arm-linux-androideabi-g++
+AR=${BIN_PATH}/arm-linux-androideabi-ar
+
+
+#===================================== section ========================================
+
+INC= -I . 
+
+OF=-Wall -O0 -funwind-tables -fstack-protector -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -Wno-psabi -fno-strict-aliasing -finline-limit=300 -DANDROID -Wa,--noexecstack -D USE_ARM -mfloat-abi=hard -mfpu=neon  -march=armv7-a -mfpu=vfpv4-d16  -mfpu=neon-vfpv4 -funsafe-math-optimizations -fvisibility=hidden -Wno-switch -Wno-sizeof-pointer-memaccess
+
+CFLAGS+= --sysroot=${NDK_HOME}/platforms/android-9/arch-arm  -Wno-missing-field-initializers -Wno-unused-parameter $(INC) $(OF) -ffast-math
+
+#===================================== aim =========================================
+lib=liblapack.a
+ 
+#===================================== main ========================================
+
+%.o:%.c
+	$(CC) $(CFLAGS) -c -o $@ $<;
+%.o:%.cpp
+	$(CXX) $(CFLAGS) -c -o $@ $<;
+%.o:%.S
+	$(CC) $(CFLAGS) -c -o $@ $<;
+	
+all:$(lib)
+
+
+$(lib):$(objs)
+	$(AR) rv $(lib) $(objs)
+  
+	
+.PHONY:clean
+clean:
+	-rm $(objs) $(lib)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

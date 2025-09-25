@@ -1,0 +1,79 @@
+#===================================== src ============================================
+arm_src_files := 
+  
+common_src_files := \
+f2c_blas.c \
+f2c.c \
+f2c_c_lapack.c \
+f2c_config.c \
+f2c_d_lapack.c \
+f2c_lapack.c \
+f2c_s_lapack.c \
+f2c_z_lapack.c \
+sgesvd.c \
+sgetri.c \  
+  
+  
+#src_c= $(filter-out $(arm_exclude_files),$(common_src_files) $(arm_src_files))
+src_c=$(common_src_files) $(arm_src_files)
+src_objc=$(filter %.o,$(patsubst %.c,%.o,$(src_c)))
+src_objs=$(filter %.o,$(patsubst %.S,%.o,$(src_c)))
+objs=$(src_objc) $(src_objs)
+
+#===================================== compile ========================================
+NDK_HOME=/home/why/soft/android-ndk-r12b-linux-x86_64/android-ndk-r12b
+BIN_PATH=${NDK_HOME}/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin
+
+CC=${BIN_PATH}/aarch64-linux-android-gcc
+CXX=${BIN_PATH}/aarch64-linux-android-g++
+AS=${BIN_PATH}/aarch64-linux-android-as
+
+
+
+#===================================== section ========================================
+
+INC= -I . 
+
+OF=-Wall -g -D HAVE_USLEEP -DFPM_64BIT -pie -fPIE -fsigned-char -funwind-tables -fstack-protector -Wno-psabi -fno-strict-aliasing -finline-limit=300 -DANDROID  -D__ANDROID__ -Wa,--noexecstack -D USE_ARM -march=armv8-a -D__ARMEL__ -funsafe-math-optimizations -fvisibility=hidden -Wno-switch -Wno-sizeof-pointer-memaccess -ffast-math  -Ofast -funroll-loops 
+
+CFLAGS+= --sysroot=${NDK_HOME}/platforms/android-21/arch-arm64 -Wno-missing-field-initializers -Wno-unused-parameter $(INC) $(OF) -ffast-math
+
+#===================================== aim =========================================
+lib=liblapack.a
+ 
+#===================================== main ========================================
+
+%.o:%.c
+	$(CC) $(CFLAGS) -c -o $@ $<;
+%.o:%.cpp
+	$(CXX) $(CFLAGS) -c -o $@ $<;
+%.o:%.S
+	$(CC) $(CFLAGS) -c -o $@ $<;
+	
+all:$(lib)
+
+
+$(lib):$(objs)
+	$(AR) rv $(lib) $(objs)
+  
+	
+.PHONY:clean
+clean:
+	-rm $(objs) $(lib)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

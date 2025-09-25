@@ -1,0 +1,110 @@
+2024-05-20 16:05:52 [0](qtk_session_print_version:43) ======>version:SDK_yk.0.2.0 build at 2024.5.20.16:03:38<======
+2024-05-20 16:05:52 [0](qtk_usrid_getdeviceId:142) network interface nums = 2.
+2024-05-20 16:05:52 [0](qtk_usrid_getdeviceId:144) 0	lo.
+2024-05-20 16:05:52 [0](qtk_usrid_getdeviceId:144) 1	enp1s0.
+2024-05-20 16:05:52 [0](qtk_usrid_getdeviceId:150) process 0 / lo
+2024-05-20 16:05:52 [0](qtk_usrid_getdeviceId:160) interface loopback
+2024-05-20 16:05:52 [0](qtk_usrid_getdeviceId:150) process 1 / enp1s0
+2024-05-20 16:05:52 [0](qtk_usrid_getdeviceId:177) enp1s0 / 00:e0:4c:1a:14:f9
+2024-05-20 16:05:52 [0](qtk_usrid_get:288) mac = 00:e0:4c:1a:14:f9
+2024-05-20 16:05:52 [0](qtk_option_print:275) ========================= opt =======================
+2024-05-20 16:05:52 [0](qtk_option_print:276) rsa = (nil)
+2024-05-20 16:05:52 [0](qtk_option_print:278) public key = -----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBALduScYh/dyHQm5uwZd0h/Wn9iqp7iczKehh2y93oWY8GHVdoFKxFddm
+reMrJKZmPzXAN9UfxLbOZagDfa0yZAycUBy6l5v/Avm2b+S0zIm+14T2MGg5MFTv
+A8DuIGO/lYyJOgD/vze03YGo3bXXVD+mmZuuXn8LOdlhNnntXV8pAgMBAAE=
+-----END RSA PUBLIC KEY-----
+
+2024-05-20 16:05:52 [0](qtk_option_print:281) phrase = qdreamer
+2024-05-20 16:05:52 [0](qtk_option_print:284) cache_path = ./qvoice
+2024-05-20 16:05:52 [0](qtk_option_print:287) log_fn = ./qvoice/qvoice.log
+2024-05-20 16:05:52 [0](qtk_option_print:290) dns_fn = ./qvoice/qvoice.dns
+2024-05-20 16:05:52 [0](qtk_option_print:296) appid = 613679ec-9cf0-11eb-b526-00163e13c8a2
+2024-05-20 16:05:52 [0](qtk_option_print:299) secretkey = f358afec-f82a-3fb2-be2d-ed096070b83e
+2024-05-20 16:05:52 [0](qtk_option_print:302) usrid = 372917e95911c2ab2ce1f19ddb018d05
+2024-05-20 16:05:52 [0](qtk_option_print:308) port = 80
+2024-05-20 16:05:52 [0](qtk_option_print:311) url = /api/v3.0/score
+2024-05-20 16:05:52 [0](qtk_option_print:314) url2 = /
+2024-05-20 16:05:52 [0](qtk_option_print:316) timeout = 2000
+2024-05-20 16:05:52 [0](qtk_option_print:317) use_srvsel = 0
+2024-05-20 16:05:52 [0](qtk_option_print:318) use_auth_cache = 0
+2024-05-20 16:05:52 [0](qtk_option_print:319) use_log = 1
+2024-05-20 16:05:52 [0](qtk_option_print:320) use_cldhub = 0
+2024-05-20 16:05:52 [0](qtk_option_print:321) log_wav = 0
+2024-05-20 16:05:52 [0](qtk_option_print:322) use_timer = 1
+2024-05-20 16:05:52 [0](qtk_option_print:323) =====================================================
+2024-05-20 16:05:52 [0](qtk_engine_param_print:642) ================== engine param ==============.
+2024-05-20 16:05:52 [0](qtk_engine_param_print:644) cfg = ./res/vboxebf/engine.cfg
+2024-05-20 16:05:52 [0](qtk_engine_param_print:658) tts_volume = -1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:659) tts_speed = -1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:660) tts_pitch = -1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:661) winStep = 20
+2024-05-20 16:05:52 [0](qtk_engine_param_print:663) left margin = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:665) right margin = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:666) idle time = 3000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:667) use bin = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:668) use_thread = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:669) use_json = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:670) active = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:671) idle = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:672) use_oneMic = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:674) asr_min_time = 500
+2024-05-20 16:05:52 [0](qtk_engine_param_print:676) asr_max_time = 10000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:677) output_ogg = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:678) syn = 1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:679) timealive = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:685) wake_logwav = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:687) use_hotword = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:689) use_hw_upload = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:690) use_hint = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:692) use_bfio_reset = 1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:694) bfio_reset_time = 43200
+2024-05-20 16:05:52 [0](qtk_engine_param_print:695) playfn = (null)
+2024-05-20 16:05:52 [0](qtk_engine_param_print:696) use_rearrange = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:697) eq_offset = 35000.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:698) nil_er = 100.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:699) mic_corr_er = 200.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:700) mic_corr_aver = 180.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:701) mic_energy_er = 800.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:702) mic_energy_aver = 700.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:703) spk_corr_er = 200.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:704) spk_corr_aver = 180.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:705) spk_energy_er = 600.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:706) spk_energy_aver = 500.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:707) use_xcorr = 1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:708) use_equal = 1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:709) use_logwav = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:710) consist_fn = (null)
+2024-05-20 16:05:52 [0](qtk_engine_param_print:711) inputpcm_fn = /sdcard
+2024-05-20 16:05:52 [0](qtk_engine_param_print:713) gbias = -1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:714) theta = 90
+2024-05-20 16:05:52 [0](qtk_engine_param_print:715) theta_range = 15
+2024-05-20 16:05:52 [0](qtk_engine_param_print:716) use_ssl = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:717) energy_sum = 0.750000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:718) online_tms = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:719) use_cfg = 1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:720) mic_shift = 1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:721) spk_shift = 1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:722) echo_shift = 1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:723) spk_channel = 1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:724) agca = -1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:725) use_inputpcm = 0
+2024-05-20 16:05:52 [0](qtk_engine_param_print:726) specsum_fs = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:727) specsum_fe = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:728) lf = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:729) theta_step = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:730) use_fftsbf = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:731) bfmu = -1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:732) echo_bfmu = -1.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:733) use_maskssl = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:734) use_maskssl2 = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:735) spenr_thresh = -100000.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:736) use_cnon = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:737) sym = -100000.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:738) use_erlssingle = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:739) online_frame_step = -1
+2024-05-20 16:05:52 [0](qtk_engine_param_print:740) noise_suppress = 100000.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:741) echo_suppress = 100000.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:742) echo_suppress_active = 100000.000000
+2024-05-20 16:05:52 [0](qtk_engine_param_print:743) ================== engine param ==============.
+2024-05-20 16:05:52 [0](qtk_evboxebf_new:361) ret = 0

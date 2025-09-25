@@ -1,0 +1,41 @@
+test_files = os.files('*.c')
+
+local target_handler = {
+    recorder = {'with-recorder'},
+}
+
+for _, filepath in ipairs(test_files) do
+    local target_name = path.basename(filepath)
+    local f = target_handler[target_name]
+    local common_case = true
+    if f then
+        if type(f) == 'function' then
+            common_case = false
+            f(filepath)
+        elseif type(f) == 'table' then
+            for _, dep_flags in ipairs(f) do
+                if not has_config(dep_flags) then
+                    common_case = false
+                end
+            end
+        end
+    end
+    if common_case then
+        target('sdk_' .. target_name)
+            set_kind('binary')
+            add_files(filepath)
+            add_deps('qtk')
+	        if has_config('static-link') then
+	            add_ldflags('--static')
+	        end
+		if is_plat('linux') then
+		    add_links('pthread')
+                end
+            add_packages(third_packages)
+            add_packages(sdk_requires)
+			if is_plat('windows') then
+			    add_cflags('/utf-8')
+			end
+        target_end()
+    end
+end

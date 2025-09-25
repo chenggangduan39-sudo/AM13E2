@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/background" />
+    <item
+        android:width="@dimen/dp_107"
+        android:height="@dimen/dp_36"
+        android:bottom="@dimen/dp_72"
+        android:drawable="@drawable/img_qdreamer_logo"
+        android:gravity="bottom|center_horizontal" />
+</layer-list>

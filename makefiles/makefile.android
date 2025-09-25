@@ -1,0 +1,634 @@
+SHELL=bash
+pwd=${shell pwd}
+
+#====== permissions 
+use_count=1
+use_usb_auth=0
+use_keros=0
+use_enc8838=0
+use_auth=0
+use_mbedtls=0
+use_openssl=0
+use_timelimit=0
+use_usb=0
+use_honghe=0
+use_kangjia=0
+use_jingdongfang=0
+use_haixin=0
+use_huachuang=0
+use_desaixiwei=0
+use_aec=0
+use_asr=0
+use_ahs=0
+use_bfio=0
+use_consist=0
+use_gainnetbf=1
+use_gdenoise=1
+use_estimate=0
+use_qform=1
+use_eqform=1
+use_beamnet=0
+use_soundscreen=1
+use_eval=0
+use_kvad=1
+use_semdlg=0
+use_ssl=1
+use_tinybf=0
+use_tts=0
+use_vad=1
+use_vboxebf=1
+use_vboxebf3=1
+use_ult=0
+use_wakeup=0
+use_img=0
+use_wdec=0
+use_kws=0
+use_onnx=0
+use_ncnn=0
+use_csrsc=0
+use_resample=1
+use_noserver=1
+use_32to8ms=0
+use_module_mqform=1
+use_module_mqform2=1
+use_module_mgainnet=0
+use_module_qform=0
+#====== control 
+dist=1
+use_gprof=0
+share=1
+#=========sdk fnc control
+
+#========================= src ========================================
+
+src_dir=third/sqlite third/json third/nosqlite wtk/http/misc/cookie  wtk/http/misc/httpc wtk/bfio wtk/core sdk wtk/tts wtk/dnnc wtk/lex wtk/lua wtk/semdlg wtk/asr #third/lapack
+
+src_dir+=qtk/sci/clustering qtk/linalg qtk/nnrt qtk/dns
+
+ifeq ($(use_ult), 1)
+src_dir+=qtk/ult qtk/mdl qtk/sci/filter qtk/sci/optimize qtk/sci/stats
+endif
+
+src_c=${shell find $(src_dir) -name "*.c"}
+
+src_c+=wtk/os/wtk_blockqueue.c wtk/os/wtk_sem.c  wtk/os/wtk_thread.c wtk/os/wtk_log.c wtk/os/wtk_log_cfg.c  wtk/os/wtk_lockqueue.c wtk/os/wtk_lockhoard.c  wtk/os/wtk_time.c wtk/os/wtk_fd.c wtk/os/wtk_socket.c wtk/os/wtk_thread2.c wtk/os/wtk_lockvpool.c wtk/os/wtk_pipequeue.c wtk/os/wtk_cpu.c wtk/http/misc/wtk_http_response.c wtk/http/misc/wtk_http_chunk.c wtk/http/misc/wtk_http_util.c# wtk/os/wtk_pid.c wtk/os/wtk_proc.c
+
+src_c+=qtk/core/qtk_min_heap.c
+
+ifeq ($(use_mbedtls), 1)
+src_c+=${shell find ./third/mbedtls/library -name "*.c"}
+endif
+
+src_c+=./third/lua/lapi.c \
+./third/lua/lauxlib.c \
+./third/lua/lbaselib.c \
+./third/lua/lcode.c \
+./third/lua/lcorolib.c \
+./third/lua/lctype.c \
+./third/lua/ldblib.c \
+./third/lua/ldebug.c \
+./third/lua/ldo.c \
+./third/lua/ldump.c \
+./third/lua/lfunc.c \
+./third/lua/lgc.c \
+./third/lua/linit.c \
+./third/lua/liolib.c \
+./third/lua/llex.c \
+./third/lua/lmathlib.c \
+./third/lua/lmem.c \
+./third/lua/loadlib.c \
+./third/lua/lobject.c \
+./third/lua/lopcodes.c \
+./third/lua/loslib.c \
+./third/lua/lparser.c \
+./third/lua/lstate.c \
+./third/lua/lstring.c \
+./third/lua/lstrlib.c \
+./third/lua/ltable.c \
+./third/lua/ltablib.c \
+./third/lua/ltm.c \
+./third/lua/lundump.c \
+./third/lua/lutf8lib.c \
+./third/lua/lvm.c \
+./third/lua/lzio.c
+
+#src_c+=${shell find ./third/speexdsp-1.2rc3/libspeexdsp -name "*.c"}
+src_c+=./third/speex/libspeex/bits.c\
+./third/speex/libspeex/cb_search.c\
+./third/speex/libspeex/exc_10_16_table.c\
+./third/speex/libspeex/exc_10_32_table.c\
+./third/speex/libspeex/exc_20_32_table.c\
+./third/speex/libspeex/exc_5_256_table.c\
+./third/speex/libspeex/exc_5_64_table.c\
+./third/speex/libspeex/exc_8_128_table.c\
+./third/speex/libspeex/filters.c\
+./third/speex/libspeex/gain_table.c\
+./third/speex/libspeex/gain_table_lbr.c\
+./third/speex/libspeex/hexc_10_32_table.c\
+./third/speex/libspeex/hexc_table.c\
+./third/speex/libspeex/high_lsp_tables.c\
+./third/speex/libspeex/kiss_fft.c\
+./third/speex/libspeex/kiss_fftr.c\
+./third/speex/libspeex/lpc.c\
+./third/speex/libspeex/lsp.c\
+./third/speex/libspeex/lsp_tables_nb.c\
+./third/speex/libspeex/ltp.c\
+./third/speex/libspeex/modes.c\
+./third/speex/libspeex/modes_wb.c\
+./third/speex/libspeex/nb_celp.c\
+./third/speex/libspeex/quant_lsp.c\
+./third/speex/libspeex/sb_celp.c\
+./third/speex/libspeex/smallft.c\
+./third/speex/libspeex/speex.c\
+./third/speex/libspeex/speex_callbacks.c\
+./third/speex/libspeex/speex_header.c\
+./third/speex/libspeex/stereo.c\
+./third/speex/libspeex/vbr.c\
+./third/speex/libspeex/vorbis_psy.c\
+./third/speex/libspeex/vq.c\
+./third/speex/libspeex/window.c\
+./third/speexdsp/libspeexdsp/buffer.c\
+./third/speexdsp/libspeexdsp/filterbank.c\
+./third/speexdsp/libspeexdsp/jitter.c\
+./third/speexdsp/libspeexdsp/mdf.c\
+./third/speexdsp/libspeexdsp/preprocess.c\
+./third/speexdsp/libspeexdsp/resample.c\
+./third/speexdsp/libspeexdsp/scal.c\
+./third/speexdsp/libspeexdsp/fftwrap.c\
+./third/libogg/src/bitwise.c  \
+./third/libogg/src/framing.c
+
+src_c+=./third/libmad-0.15.1b/huffman.c\
+./third/libmad-0.15.1b/synth.c \
+./third/libmad-0.15.1b/bit.c \
+./third/libmad-0.15.1b/frame.c\
+./third/libmad-0.15.1b/version.c\
+./third/libmad-0.15.1b/timer.c\
+./third/libmad-0.15.1b/layer3.c\
+./third/libmad-0.15.1b/stream.c\
+./third/libmad-0.15.1b/decoder.c\
+./third/libmad-0.15.1b/fixed.c\
+./third/libmad-0.15.1b/layer12.c
+
+src_c+=third/libuuid/clear.c \
+third/libuuid/compare.c \
+third/libuuid/copy.c \
+third/libuuid/gen_uuid.c \
+third/libuuid/isnull.c \
+third/libuuid/pack.c \
+third/libuuid/parse.c \
+third/libuuid/randutils.c \
+third/libuuid/unpack.c \
+third/libuuid/unparse.c \
+third/libuuid/uuid_time.c \
+
+src_c+=./third/tinyalsa/pcm.c
+
+exclude_dir = sdk/dev sdk/binding/jni sdk/binding sdk/mulsv
+ifneq ($(use_auth),1)
+	exclude_dir += sdk/session/auth
+endif
+ifneq ($(use_asr), 1)
+	exclude_dir += sdk/engine/asr sdk/api_1/asr
+	exclude_dir += sdk/engine/csr sdk/api_1/csr
+endif
+ifneq ($(use_csrsc), 1)
+	exclude_dir += sdk/engine/ecsrsc sdk/api_1/csrsc
+endif
+ifneq ($(use_bfio), 1)
+	exclude_dir += sdk/engine/bfio sdk/api_1/bfio
+endif
+ifneq ($(use_consist), 1)
+	exclude_dir += sdk/engine/consist
+endif
+ifneq ($(use_gainnetbf), 1)
+	exclude_dir += sdk/engine/egainnetbf sdk/api_1/gainnetbf
+endif
+ifneq ($(use_gdenoise), 1)
+	exclude_dir += sdk/engine/egdenoise sdk/api_1/gdenoise
+endif
+ifneq ($(use_estimate), 1)
+	exclude_dir += sdk/engine/eestimate sdk/api_1/estimate
+endif
+ifneq ($(use_qform), 1)
+	exclude_dir += sdk/engine/eqfrom sdk/api_1/qform
+endif
+ifneq ($(use_eqform), 1)
+	exclude_dir += sdk/engine/eeqfrom sdk/api_1/eqform
+endif
+ifneq ($(use_beamnet), 1)
+	exclude_dir += sdk/api_1/beamnet
+endif
+ifneq ($(use_soundscreen), 1)
+	exclude_dir += sdk/engine/esoundscreen sdk/api_1/soundScreen
+endif
+ifneq ($(use_eval), 1)
+	exclude_dir += sdk/engine/eval sdk/api_1/eval
+endif
+ifneq ($(use_kvad), 1)
+	exclude_dir += sdk/engine/kvad
+endif
+ifneq ($(use_semdlg), 1)
+	exclude_dir += sdk/engine/semdlg sdk/api_1/semdlg
+endif
+ifneq ($(use_ssl), 1)
+	exclude_dir += sdk/engine/ssl sdk/api_1/ssl
+endif
+ifneq ($(use_tinybf), 1)
+	exclude_dir += sdk/engine/tinybf
+endif
+ifneq ($(use_tts), 1)
+	exclude_dir += sdk/engine/tts sdk/api_1/tts
+	exclude_dir += wtk/tts
+endif
+ifneq ($(use_vad), 1)
+	exclude_dir += sdk/engine/vad
+endif
+ifneq ($(use_vboxebf), 1)
+	exclude_dir += sdk/engine/vboxebf sdk/api_1/vboxebf
+endif
+ifneq ($(use_vboxebf3), 1)
+	exclude_dir += sdk/engine/vboxebf3
+endif
+ifneq ($(use_wakeup), 1)
+	exclude_dir += sdk/engine/wakeup sdk/api_1/wakeup
+endif
+ifneq ($(use_img), 1)
+	exclude_dir += sdk/engine/img sdk/api_1/img
+endif
+ifneq ($(use_wdec), 1)
+	exclude_dir += sdk/engine/wdec sdk/api_1/wdec
+endif
+ifneq ($(use_kws),1)
+	exclude_dir += sdk/engine/eqkws sdk/api_1/kws
+endif
+ifneq ($(use_ult), 1)
+	exclude_dir += sdk/api_1/ultrasonic sdk/module/mult
+endif
+
+ifeq ($(use_asr)_$(use_vad)_$(use_kvad)_$(use_semdlg)_$(use_wakeup)_$(use_wdec)_$(use_kws), 0_0_0_0_0_0_0)
+exclude_dir += wtk/asr
+endif
+exclude_dir+=sdk/codec/opus
+exclude_c=${shell find $(exclude_dir) -name "*.c"}
+ifneq ($(use_bfio), 1)
+exclude_c+=wtk/bfio/wtk_bfio.c wtk/bfio/wtk_bfio_cfg.c wtk/bfio/wtk_bfio3.c wtk/bfio/wtk_bfio3_cfg.c wtk/bfio/wtk_bfio4.c wtk/bfio/wtk_bfio4_cfg.c wtk/bfio/wtk_kvadwake.c wtk/bfio/wtk_kvadwake_cfg.c
+endif
+ifneq ($(use_asr), 1)
+exclude_c+=wtk/bfio/qtk_wasr.c wtk/bfio/qtk_wasr_cfg.c wtk/bfio/qtk_fixed_angle_wasr.c wtk/bfio/qtk_fixed_angle_wasr_cfg.c
+endif
+exclude_c+=third/sqlite/shell.c wtk/bfio/ahs/qtk_kalman.c
+exclude_c+=sdk/qtk_mod_cfg.c sdk/qtk_mod.c sdk/qtk_mod_am60_cfg.c sdk/qtk_mod_am60.c sdk/qtk_mod2_cfg.c sdk/qtk_mod2.c sdk/qtk_mod_double_cfg.c sdk/qtk_mod_double.c sdk/qtk_mod_ult.c sdk/qtk_mod_ult_cfg.c sdk/qtk_mod_consist_cfg.c sdk/qtk_mod_consist.c sdk/qtk_mod_rp.c sdk/qtk_mod_rp_cfg.c sdk/qtk_uart_client.c sdk/qtk_uart_client_cfg.c
+exclude_cpp=${shell find $(exclude_dir) -name "*.cpp"}
+
+src_f_c=$(filter-out $(exclude_c),$(src_c))
+c_objs=$(patsubst %.c,%.o,$(src_f_c))
+src_cpp=${shell find $(src_dir) -name "*.cpp"}
+src_f_cpp=$(filter-out $(exclude_cpp),$(src_cpp))
+cpp_objs=$(patsubst %.cpp,%.o,$(src_f_cpp))
+src_neon=${shell find ${src_dir} -name "*.neon"}
+neon_objs=$(patsubst %.neon,%.o,$(src_neon))
+lib_objs=$(c_objs) $(cpp_objs) $(neon_objs)
+
+objs=$(lib_objs)
+
+#tool_src= ./test/tool/sdk/process/Qsound_301.c
+tool_src += ./test/tool/sdk/process/engine.c
+#tool_src += ./test/tool/sdk/process/engine-enroll.c
+#tool_src += ./test/tool/sdk/process/engine-eval.c
+#tool_src += ./test/tool/sdk/process/mqform.c
+tool_src += ./test/tool/sdk/process/vboxebf3.c
+tool_src += ./test/tool/sdk/process/vboxebf4.c
+#tool_src += ./test/tool/asr/myasr.c
+#tool_src += ./test/tool/asr/svp-sc.c
+#tool_src += ./test/tool/asr/wasr.c
+#tool_src += ./test/tool/asr/svp-enroll.c
+#tool_src += ./test/tool/asr/svp-eval.c
+tool_src += ./test/tool/bfio/cmask_aec.c
+tool_src += ./test/tool/sdk/process/testa.c
+#tool_src += ./test/tool/sdk/process/enc.c
+#tool_src += ./test/tool/sdk/process/key.c
+#tool_src += ./test/tool/sdk/process/uart.c
+#tool_src += ./test/tool/sdk/process/led.c
+#tool_src += ./test/tool/sdk/process/wifi.c
+#tool_src += ./test/tool/sdk/process/uart2.c
+#tool_src += ./test/tool/sdk/process/rcd.c
+#tool_src += ./test/tool/sdk/process/audio.c
+#tool_src += ./test/tool/sdk/process/kwfst.c
+#tool_src += ./test/tool/sdk/process/kwake.c
+#tool_src += ./test/tool/sdk/process/bfio.c
+#tool_src += ./test/tool/sdk/process/vad.c
+#tool_src += ./test/tool/sdk/process/aec.c
+#tool_src += ./test/tool/sdk/process/wbf.c
+
+tool_objs= $(patsubst %.c,%.o,$(tool_src))
+tool_obj= $(patsubst %.c,%,$(tool_src))
+######################################################
+
+
+######################### lib section #####################################
+libusb=./third/libusb-1.0.20/libusb.a
+libcrypto=./third/openssl/libcrypto.a
+libgprof=./third/android-ndk-profiler-master/obj/local/armeabi/libandroid-ndk-profiler.a
+liblapack=./third/lapack/liblapack.a
+
+libs=${liblapack}
+
+ifeq ($(use_usb),1)
+	libs+= ${libusb}
+endif
+
+ifeq ($(use_openssl), 1)
+	libs+= ${libcrypto}
+endif
+############################################################################
+
+############### compile section ###############
+NDK_HOME=/home/why/soft/android-ndk-r12b-linux-x86_64/android-ndk-r12b
+NDK_HOME_r9=/home/why/soft/android-ndk-r9c
+BIN_PATH=${NDK_HOME}/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin
+
+CC=${BIN_PATH}/arm-linux-androideabi-gcc
+CXX=${BIN_PATH}/arm-linux-androideabi-g++
+AS=${BIN_PATH}/arm-linux-androideabi-as
+
+
+INC =-I . -I sdk/binding/jni -I third/tinyalsa/include -I ${NDK_HOME}/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/lib/gcc/arm-linux-androideabi/4.9.x/include -I ${NDK_HOME}/sources/cxx-stl/system/include/ -I ${NDK_HOME}/sources/cxx-stl/stlport/stlport  -I ./third/libmad-0.15.1b/  -I ./third/libogg/include/ -I third/libusb-1.0.20/ -I ./third/CRF++-0.58/ -I ./third/android-ndk-profiler-master/jni  -I ./third/speexdsp/include -I ./third/speex/include -I ./third/speexdsp/include/speex/  -I ./sdk -I third/libuuid -I ./third -I ./third/libmad-0.15.1b/msvc++ -I wtk -I wtk/tts -I wtk/tts/cosynthesis -I wtk/tts/cosynthesis/front_end/include
+
+ifeq ($(use_openssl), 1)
+	INC += -I ./third/openssl/include
+endif
+ifeq ($(use_mbedtls), 1)
+	INC += -I third/mbedtls/include
+endif
+
+ifeq ($(use_onnx), 1)
+	INC += -I third/onnxruntime/onnxruntime-android-armeabi-v7a-1.11.1/include
+endif
+
+ifeq ($(use_ncnn), 1)
+	INC += -I third/ncnn/build_linux/install/include
+endif
+
+ifeq ($(dist),1)
+	OF= -O3 -DHAVE_USLEEP -marm -pie -fPIE -fsigned-char -funwind-tables -fstack-protector -Wno-psabi -fno-strict-aliasing -finline-limit=300 -DANDROID  -D__ANDROID__ -Wa,--noexecstack -D USE_ARM -mfloat-abi=hard -mfpu=neon  -march=armv7-a -funsafe-math-optimizations -fvisibility=hidden -Wno-switch -Wno-sizeof-pointer-memaccess -ffast-math  -Ofast -funroll-loops #-D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -Wno-psabi -fno-strict-aliasing -finline-limit=300 -DANDROID  -D__ANDROID__ -Wa,--noexecstack -D USE_ARM -mfloat-abi=hard -mfpu=neon  -march=armv7-a -mfpu=vfpv4-d16  -mfpu=neon-vfpv4 -funsafe-math-optimizations -fvisibility=hidden -Wno-switch -Wno-sizeof-pointer-memaccess -ffast-math  -Ofast -funroll-loops 
+	WFLAGS=-Wall 
+	CFLAGS= $(OF) $(INC) ${WFLAGS}
+else
+	OF= -g -DHAVE_USLEEP -marm -pie -fPIE -fsigned-char -funwind-tables -fstack-protector -Wno-psabi -fno-strict-aliasing -finline-limit=300 -DANDROID  -D__ANDROID__ -Wa,--noexecstack -D USE_ARM -mfloat-abi=hard -mfpu=neon  -march=armv7-a -funsafe-math-optimizations -fvisibility=hidden -Wno-switch -Wno-sizeof-pointer-memaccess -ffast-math  -Ofast -funroll-loops #-D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -Wno-psabi -fno-strict-aliasing -finline-limit=300 -DANDROID  -D__ANDROID__ -Wa,--noexecstack -D USE_ARM -mfloat-abi=hard -mfpu=neon  -march=armv7-a -mfpu=vfpv4-d16  -mfpu=neon-vfpv4 -funsafe-math-optimizations -fvisibility=hidden -Wno-switch -Wno-sizeof-pointer-memaccess -ffast-math  -Ofast -funroll-loops 
+	WFLAGS=-Wall 
+	CFLAGS= $(OF) $(INC) ${WFLAGS}
+
+endif
+
+CFLAGS +=--sysroot=${NDK_HOME}/platforms/android-19/arch-arm -DUSE_DUMMY_ICONV -DUSE_SQL -DFIXED_POINT -DUSE_KISS_FFT -DEXPORT="" -DHAVE_CONFIG_H -DFPM_ARM -DQTK_USE_LOCAL_EVAL -DQTK_USE_SYS_PATH  -DOPUS_BUILD -DUSE_ALLOCA -DUSE_ALIGN -std=gnu99 #-DUSE_NEON 
+
+ifeq ($(share),1)
+	CFLAGS+=-fPIC #-shared
+endif
+
+ifeq ($(use_gprof),1)
+	CFLAGS +=-DUSE_GPROF -pg
+	libs+= $(libgprof)
+else
+	CFLAGS += -fomit-frame-pointer -ffunction-sections
+endif
+
+LFLAGS=-lgcc -no-canonical-prefixes  -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -lm  -lc  -llog -funsafe-math-optimizations -Wl,--no-warn-mismatch ${libs} -frtti -L $(NDK_HOME)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a -lsupc++ #
+
+ifeq ($(use_openssl), 1)
+	LFLAGS += ${libcrypto}
+endif
+
+ifeq ($(use_keros), 1)
+	LFLAGS+=-L./third/keros-android/12b/armeabi-v7a -lkeros_lib
+endif
+ifeq ($(use_enc8838), 1)
+#LFLAGS+=./third/ws222-3308/lib_aarch64-linux-gnu_mass.a
+endif
+
+ifeq ($(use_onnx), 1)
+	LFLAGS += -lonnxruntime -L./third/onnxruntime/onnxruntime-android-armeabi-v7a-1.11.1/lib
+endif
+
+ifeq ($(use_ncnn), 1)
+	LFLAGS += -lncnn -L./third/ncnn/build_linux/install/lib
+endif
+
+ifeq ($(use_auth),1)
+	CFLAGS += -DUSE_AUTH
+ifeq ($(use_openssl), 1)
+	CFLAGS += -DUSE_OPENSSL
+endif
+ifeq ($(use_mbedtls), 1)
+	CFLAGS += -DUSE_MBEDTLS
+endif
+endif
+ifeq ($(use_timelimit),1)
+	CFLAGS += -DUSE_TIMELIMIT
+endif
+ifeq ($(use_usb),1)
+	CFLAGS += -DUSE_USB
+endif
+ifeq ($(use_aec),1)
+	CFLAGS += -DUSE_AEC
+endif
+ifeq ($(use_asr),1)
+	CFLAGS += -DUSE_ASR
+endif
+ifeq ($(use_bfio),1)
+	CFLAGS += -DUSE_BFIO
+endif
+ifeq ($(use_consist),1)
+	CFLAGS += -DUSE_CONSIST
+endif
+ifeq ($(use_gainnetbf),1)
+	CFLAGS += -DUSE_GAINNETBF
+endif
+ifeq ($(use_gdenoise),1)
+	CFLAGS += -DUSE_GDENOISE
+endif
+ifeq ($(use_estimate),1)
+	CFLAGS += -DUSE_ESTIMATE
+endif
+ifeq ($(use_qform),1)
+	CFLAGS += -DUSE_QFORM
+endif
+ifeq ($(use_eqform),1)
+	CFLAGS += -DUSE_EQFORM
+endif
+ifeq ($(use_beamnet),1)
+	CFLAGS += -DUSE_BEAMNET
+endif
+ifeq ($(use_soundscreen),1)
+	CFLAGS += -DUSE_SOUNDSCREEN
+endif
+ifeq ($(use_eval),1)
+	CFLAGS += -DUSE_EVAL
+endif
+ifeq ($(use_kvad),1)
+	CFLAGS += -DUSE_KVAD
+endif
+ifeq ($(use_semdlg),1)
+	CFLAGS += -DUSE_SEMDLG
+endif
+ifeq ($(use_ssl),1)
+	CFLAGS += -DUSE_SSL
+endif
+ifeq ($(use_tinybf),1)
+	CFLAGS += -DUSE_TINYBF
+endif
+ifeq ($(use_tts),1)
+	CFLAGS += -DUSE_TTS
+endif
+ifeq ($(use_vad),1)
+	CFLAGS += -DUSE_VAD
+endif
+ifeq ($(use_vboxebf),1)
+	CFLAGS += -DUSE_VBOXEBF
+endif
+ifeq ($(use_vboxebf3),1)
+	CFLAGS += -DUSE_VBOXEBF3
+endif
+ifeq ($(use_wakeup),1)
+	CFLAGS += -DUSE_WAKEUP
+endif
+ifeq ($(use_img),1)
+	CFLAGS += -DUSE_EIMG
+endif
+ifeq ($(use_wdec),1)
+	CFLAGS += -DUSE_WDEC
+endif
+ifeq ($(use_kws),1)
+	CFLAGS += -DUSE_QKWS
+endif
+ifeq ($(use_ahs),1)
+	CFLAGS += -DUSE_AHS
+endif
+ifeq ($(use_resample),1)
+	CFLAGS += -DUSE_RESAMPLE
+endif
+ifeq ($(use_onnx),1)
+	CFLAGS += -DONNX_DEC -DQTK_NNRT_ONNXRUNTIME
+endif
+ifeq ($(use_ncnn),1)
+	CFLAGS += -DQTK_NNRT_NCNN
+endif
+ifeq ($(use_csrsc),1)
+	CFLAGS += -DUSE_CSRSC
+endif
+
+ifeq ($(use_count), 1)
+	CFLAGS += -DUSE_QTKCOUNT
+endif
+ifeq ($(use_usb_auth), 1)
+	CFLAGS += -DUSE_USB_AUTH
+endif
+
+ifeq ($(use_honghe), 1)
+	CFLAGS += -DUSE_HONGHE
+endif
+ifeq ($(use_kangjia), 1)
+	CFLAGS += -DUSE_KANGJIA
+endif
+ifeq ($(use_jingdongfang), 1)
+	CFLAGS += -DUSE_JINGDONGFANG
+endif
+ifeq ($(use_haixin), 1)
+	CFLAGS += -DUSE_HAIXIN
+endif
+ifeq ($(use_huachuang), 1)
+	CFLAGS += -DUSE_HUACHUANG
+endif
+ifeq ($(use_desaixiwei),1)
+	CFLAGS += -DUSE_DESAIXIWEI
+endif
+
+ifeq ($(use_keros), 1)
+	CFLAGS += -DUSE_KEROS
+endif
+
+ifeq ($(use_enc8838), 1)
+	CFLAGS += -DUSE_ENC8838
+endif
+
+ifeq ($(use_module_mqform), 1)
+        CFLAGS += -DUSE_MODULE_MQFORM
+endif
+ifeq ($(use_module_mqform2), 1)
+        CFLAGS += -DUSE_MODULE_MQFORM2
+endif
+ifeq ($(use_module_mgainnet), 1)
+        CFLAGS += -DUSE_MODULE_MGAINNET
+endif
+ifeq ($(use_module_qform), 1)
+	CFLAGS += -DUSE_MODULE_QFORM
+endif
+
+ifeq ($(use_noserver), 1)
+	CFLAGS += -DUSE_NOSERVER
+endif
+
+ifeq ($(use_32to8ms),1)
+        CFLAGS += -DUSE_32MSTO8MS
+endif
+
+
+libso=libQvoice.so
+
+#============================================================================================
+
+%.o:%.neon
+	cp $< neon.c
+	$(CC) $(CFLAGS) -c -o $@ neon.c; 
+%.o:%.c
+	$(CC) $(CFLAGS) -c -o $@ $<;  
+%.o:%.cpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+
+all: ${libs} ${libcrypto} ${libso} tool
+
+
+$(libso):${libs} ${libcrypto} $(lib_objs)
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o ./sdk/binding/jni/audio.o  ./sdk/binding/jni/audio.c
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o ./sdk/binding/jni/session.o  ./sdk/binding/jni/session.c
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o ./sdk/binding/jni/engine.o  ./sdk/binding/jni/engine.c
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o ./sdk/binding/jni/module.o  ./sdk/binding/jni/module.c
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o ./sdk/binding/jni/oggdec.o  ./sdk/binding/jni/oggdec.c
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o ./sdk/binding/jni/qvoice_init.o  ./sdk/binding/jni/qvoice_init.c
+	$(CC) $(CFLAGS) -shared  -o ${libso} ./sdk/binding/jni/audio.o ./sdk/binding/jni/session.o ./sdk/binding/jni/engine.o ./sdk/binding/jni/module.o ./sdk/binding/jni/oggdec.o ./sdk/binding/jni/qvoice_init.o  $(lib_objs) $(LFLAGS)
+	${BIN_PATH}/arm-linux-androideabi-strip ${libso}
+
+
+tool: $(objs) $(tool_objs)
+	for i in $(tool_obj);\
+		do echo $${i};\
+		$(CC) $(CFLAGS) -Wl,--gc-sections -c -o $${i}.o $${i}.c;\
+		$(CXX) $(CFLAGS) -Wl,--gc-sections -o tool/`basename $${i}` $${i}.o ${objs} -L . $(LFLAGS);\
+	done;
+
+pre:
+	cd ./third;tar -xvf speexdsp-1.2rc3.tar.gz
+
+
+third/sqlite/sqlite3.o:./third/sqlite/sqlite3.c
+	$(CC) --sysroot=${NDK_HOME}/platforms/android-9/arch-arm -O3 -Wall -funroll-loops -Wno-unused-result -c -o $@ $<
+
+${libusb}:
+	cd ./third;tar -zxvf libusb-1.0.20.tar.gz;cd ./libusb-1.0.20;make -f makefile.android ANDROID_NDK_DIR=$(NDK_HOME_r9) clean all;
+
+${libcrypto}:
+ifeq ($(use_openssl), 1)
+	cd ./third/openssl;make -f makefile.android NDK_HOME=$(NDK_HOME) clean all;
+endif
+
+${libgprof}:
+	cd ./third/android-ndk-profiler-master;make ANDROID_NDK=$(NDK_HOME) clean;make ANDROID_NDK=$(NDK_HOME);
+
+${liblapack}:
+	cd ./third/lapack;make -f makefile.android clean all;
+
+
+clean:
+	-rm $(objs) $(libs) ./sdk/binding/jni/audio.o ./sdk/binding/jni/session.o ./sdk/binding/jni/engine.o ./sdk/binding/jni/module.o ./sdk/binding/jni/qvoice_init.o

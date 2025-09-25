@@ -1,0 +1,227 @@
+###############Configure###################
+use_share=0
+dist=0
+use_debug=0    #for debug log
+
+#src_dir= #wtk/core wtk/os wtk/tts/parser wtk/lex wtk/tts-mer wtk/tts-tac qtk
+#src_dir= wtk/lex
+#src_c=${shell find $(src_dir) -name "*.c"}
+#c_objs=$(patsubst %.c,%.o,$(src_c))
+#src_cpp=${shell find $(src_dir) -name "*.cpp"}
+#cpp_objs=$(patsubst %.cpp,%.o,$(src_cpp))
+
+src_c=wtk/core/cfg/wtk_main_cfg.c \
+wtk/core/cfg/wtk_cfg_file.c \
+wtk/core/cfg/wtk_source.c \
+wtk/core/cfg/wtk_local_cfg.c \
+wtk/core/cfg/wtk_cfg_queue.c \
+wtk/core/cfg/wtk_mbin_cfg.c \
+wtk/core/wtk_arg.c \
+wtk/core/wtk_kdict.c \
+wtk/core/wtk_str_hash.c \
+wtk/core/wtk_array.c \
+wtk/core/wtk_strpool.c \
+wtk/core/wtk_str.c \
+wtk/core/wtk_str_parser.c \
+wtk/core/wtk_strbuf.c \
+wtk/core/wtk_str_encode.c \
+wtk/core/wtk_queue.c \
+wtk/core/wtk_queue2.c \
+wtk/core/wtk_queue3.c \
+wtk/core/wtk_alloc.c \
+wtk/core/wtk_heap.c \
+wtk/core/wtk_larray.c \
+wtk/core/wtk_os.c \
+wtk/core/wtk_fkv.c \
+wtk/core/wtk_fkv2.c \
+wtk/core/wtk_treenode.c \
+wtk/core/wtk_rbtree.c \
+wtk/core/wtk_vpool.c \
+wtk/core/wtk_hoard.c \
+wtk/core/wtk_hash.c \
+wtk/core/wtk_robin.c \
+wtk/core/wtk_bit_heap.c \
+wtk/core/rbin/wtk_flist.c \
+wtk/core/rbin/wtk_rbin.c \
+wtk/core/rbin/wtk_rbin2.c \
+wtk/core/math/wtk_mat.c \
+wtk/core/math/wtk_math.c \
+wtk/core/math/wtk_vector.c \
+wtk/core/math/wtk_matrix.c \
+wtk/core/segmenter/wtk_segmenter_cfg.c \
+wtk/core/segmenter/wtk_segmenter.c \
+wtk/core/segmenter/wtk_poseg_cfg.c \
+wtk/core/segmenter/wtk_poseg.c \
+wtk/core/segmenter/wtk_chnpos_cfg.c \
+wtk/core/segmenter/wtk_chnpos.c \
+wtk/core/segmenter/wtk_chnpos_model.c \
+wtk/core/segmenter/wtk_prune_cfg.c \
+wtk/core/segmenter/wtk_prune.c \
+wtk/core/segmenter/wtk_posdict.c \
+wtk/core/json/wtk_json.c \
+wtk/core/json/wtk_json_parse.c \
+qtk/parse/qtk_tts_parse.c \
+qtk/parse/qtk_tts_parse_cfg.c \
+qtk/parse/qtk_tts_symbols_id_cfg.c \
+qtk/parse/qtk_tts_symbols_id.c \
+qtk/parse/qtk_tts_prosody.c \
+qtk/parse/qtk_tts_prosody_cfg.c \
+qtk/parse/qtk_tts_polyphone_cfg.c \
+qtk/parse/qtk_tts_polyphone.c \
+qtk/parse/qtk_tts_comm.c \
+qtk/parse/dispoly/qtk_tts_dispoly_cfg.c \
+qtk/parse/dispoly/qtk_tts_dispoly.c \
+qtk/parse/segwrd/qtk_tts_segwrd_cfg.c \
+qtk/parse/segwrd/qtk_tts_segwrd.c \
+qtk/parse/ncrf/qtk_tts_ncrf_cfg.c \
+qtk/parse/ncrf/qtk_tts_ncrf.c \
+wtk/tts/parser/wtk_tts_norm_cfg.c \
+wtk/tts/parser/wtk_tts_norm.c \
+wtk/tts/parser/wtk_tts_def.c \
+wtk/tts/parser/wtk_tts_segsnt_cfg.c \
+wtk/tts/parser/wtk_tts_segsnt.c \
+wtk/tts/parser/wtk_tts_segwrd_cfg.c \
+wtk/tts/parser/wtk_tts_segwrd.c \
+wtk/tts/parser/wtk_maxseg.c \
+wtk/tts-mer/wtk-extend/wtk_heap2.c \
+wtk/tts-mer/wtk-extend/wtk_mer_source_file.c \
+wtk/tts-mer/wtk-extend/wtk_blas.c \
+wtk/tts-mer/wtk-extend/wtk_mat2.c \
+wtk/tts-mer/wtk-extend/wtk_file.c \
+wtk/tts-mer/wtk-extend/nn/wtk_nn_activation.c \
+wtk/tts-mer/wtk-extend/nn/wtk_nn.c \
+wtk/lex/wtk_lex_cfg.c \
+wtk/lex/wtk_lex.c \
+wtk/lex/ner/wtk_hmmne.c \
+wtk/lex/ner/wtk_hmmnr.c \
+wtk/lex/net/wtk_lex_net.c \
+wtk/lex/lexc/wtk_lexc_cfg.c \
+wtk/lex/lexc/wtk_lexc.c \
+wtk/lex/lexc/wtk_lex_script.c \
+wtk/lex/lexc/wtk_lex_ner_cfg.c \
+wtk/lex/lexr/wtk_lexr_cfg.c \
+wtk/lex/lexr/wtk_lexr.c \
+wtk/lex/lexr/wtk_lexr_lib_cfg.c \
+wtk/lex/lexr/wtk_lexr_lib.c \
+wtk/lex/lexr/wtk_treebin.c \
+wtk/lex/wrdvec/wtk_wrdvec_cfg.c \
+wtk/lex/wrdvec/wtk_wrdvec.c
+
+
+exclude_dir= #qtk/torchnn qtk/vits
+
+#exclude_c=${shell find $(exclude_dir) -name "*.c"}
+
+#exclude_c+=qtk/vits/qtk_vits_syn_cfg.c qtk/vits/qtk_vits_syn.c qtk/vits/qtk_vits_modules.c qtk/vits/qtk_vits_attn.c qtk/vits/qtk_vits_models.c
+
+exclude_cpp= #${shell find $(exclude_dir) -name "*.cpp"}
+
+#src_f_c=$(filter-out $(exclude_c),$(src_c))
+#c_objs=$(patsubst %.c,%.obj,$(src_f_c))
+c_objs=$(patsubst %.c,%.obj,$(src_c))
+#src_f_cpp=$(filter-out $(exclude_cpp),$(src_cpp))
+#cpp_objs=$(patsubst %.cpp,%.obj,$(src_f_cpp))
+
+
+#test_dir=test
+#test_c=${shell find $(test_dir) -name "*.c"}
+#test_objs=$(patsubst %.c,%.o,$(test_c))
+#test_cpp=${shell find $(test_dir) -name "*.cpp"}
+#test_cpp_objs=$(patsubst %.cpp,%.o,$(test_cpp))
+
+lib_objs=$(c_objs) $(cpp_objs)
+
+tool_dir=tool
+tools_s=test/tts_befor_process.c
+tool_c=test/tts_befor_process.c
+#tool_c=${shell find ${tools_s} -name "*.c"}
+tool_e=$(patsubst %.c,%.obj,$(tool_c))
+tool_o=$(patsubst %.c,%.obj,$(tool_c))
+
+#tool_cpp=${shell find ${tools_s} -name "*.cpp"}
+#tool_cpp_e=${patsubst %.cpp,%,${tool_cpp}}
+#tool_o+=${patsubst %.cpp,%.o,${tool_cpp}}
+
+
+######################### lib section #####################################
+#ifeq ($(use_share), 1)
+#lib=./lib/linux/libtts.vits.so
+#else
+lib=./lib/linux/libtts.lib
+#endif
+
+############ gprof section ###############
+
+#gprof_n=
+#gprof_log=${gprof_n}.txt
+#grpof_dot=${gprof_n}.dot
+#gprof_png=${gprof_n}.png
+
+
+############### compile section ###############
+INC =-I . -I wtk -I qtk -I./wtk/tts/include -I"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include" -I"C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um" -I"C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\shared" -I"C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\ucrt"
+
+CC="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\bin\Hostx64\x64\cl.exe"
+CXX="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\bin\Hostx64\x64\cl.exe"
+ar="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\bin\Hostx64\x64\lib.exe"
+LINK="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\bin\Hostx64\x64\link.exe"
+
+#ifeq (${dist}, 1)
+OF=-O2 #-Wno-write-strings #-msse4 -fopenmp
+#else
+#OF= #-g #-Wno-write-strings #-msse4 -fopenmp
+#endif
+CFLAGS=$(OF) $(INC) -D WIN32 -D _WIN32 -D WIN32_LEAN_AND_MEAN /c #/IC:\USERS\38237\SOURCE\REPOS\TTS2\TTS2 /ZI /JMC /nologo /W3 /WX- /diagnostics:column /sdl- /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /permissive- /Fo"X64\DEBUG\\" /Fd"X64\DEBUG\VC143.PDB" /external:W3 /Gd /TC /FC
+WFLAGS= -Wall #-Werror
+
+LFLAGS= /SUBSYSTEM:CONSOLE /STACK:"16000000" /TLBID:1 /DYNAMICBASE /NXCOMPAT /MACHINE:x64 /NOLOGO KERNEL32.LIB USER32.LIB GDI32.LIB WINSPOOL.LIB COMDLG32.LIB ADVAPI32.LIB SHELL32.LIB OLE32.LIB OLEAUT32.LIB UUID.LIB ODBC32.LIB ODBCCP32.LIB /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /LIBPATH:"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\lib\onecore\x64" /LIBPATH:"C:\Program Files (x86)\Windows Kits\10\Lib" /LIBPATH:"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22000.0\um\x64" /LIBPATH:"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22000.0\ucrt\x64"
+#"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22000.0\um\x64\kernel32.Lib"
+#"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\lib\x64\vcompd.lib" "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\lib\x64\oldnames.lib" "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\lib\onecore\x64\libcmt.lib"
+#"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22000.0\ucrt\arm64\libucrt.lib"
+#"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22000.0\ucrt\x64\libucrt.lib"
+#"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\lib\onecore\x64\libcmtd.lib"
+#/OUT:"D:\WORK\WORKSPACE\TTS2\X64\DEBUG\TTS2.EXE" /INCREMENTAL /ILK:"X64\DEBUG\TTS2.ILK" /NOLOGO KERNEL32.LIB USER32.LIB GDI32.LIB WINSPOOL.LIB COMDLG32.LIB ADVAPI32.LIB SHELL32.LIB OLE32.LIB OLEAUT32.LIB UUID.LIB ODBC32.LIB ODBCCP32.LIB /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\WORK\WORKSPACE\TTS2\X64\DEBUG\TTS2.PDB" /SUBSYSTEM:CONSOLE /STACK:"16000000" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\WORK\WORKSPACE\TTS2\X64\DEBUG\TTS2.LIB" /MACHINE:X64
+
+#ifeq ($(use_share), 1)
+#	OF+=-fPIC
+#endif
+
+#ifeq (${use_debug},1)
+#	CFLAGS += -DUSE_DEBUG
+#endif
+
+#ie=$(shell whereis libiconv|grep "so"|wc -l)
+#ifeq (${ie},1)
+#	LFLAGS += -liconv
+#endif
+
+.c.obj:
+	$(CC) $(CFLAGS) $(WFLAGS) /Fooutdir\ /c $<
+
+.cpp.obj:
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+
+all:$(lib) tools
+.PHONY: all clean
+
+
+tools:$(lib)
+	$(CC) $(CFLAGS) $(WFLAGS) /Fooutdir\ /c $(tool_c)
+	$(LINK) $(LFLAGS) /out:main.exe outdir/tts_befor_process.obj $(lib)
+#
+#	#for i in  $(tool_e); \
+#		#do echo $${i}; \
+#		#if [ ! -d tool ]; then mkdir tool; fi;\
+#		#$(CC) $(CFLAGS) $(WFLAGS) -c  $${i}.c; \
+#		#$(CXX) $(CFLAGS) $(WFLAGS) -o tool/`basename $${i}`  $${i}.obj $(lib) $(LFLAGS) ; \
+#	#done
+
+$(lib): $(lib_objs)  
+	$(ar) outdir\*.obj /out:$(lib)
+
+
+
+clean:
+	-rm $(lib_objs) $(tool_o)
+

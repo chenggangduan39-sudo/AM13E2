@@ -1,0 +1,79 @@
+#===================================== src ============================================
+arm_src_files := 
+  
+common_src_files := \
+f2c_blas.c \
+f2c.c \
+f2c_c_lapack.c \
+f2c_config.c \
+f2c_d_lapack.c \
+f2c_lapack.c \
+f2c_s_lapack.c \
+f2c_z_lapack.c \
+sgesvd.c \
+sgetri.c \  
+  
+  
+#src_c= $(filter-out $(arm_exclude_files),$(common_src_files) $(arm_src_files))
+src_c=$(common_src_files) $(arm_src_files)
+src_objc=$(filter %.o,$(patsubst %.c,%.o,$(src_c)))
+src_objs=$(filter %.o,$(patsubst %.S,%.o,$(src_c)))
+objs=$(src_objc) $(src_objs)
+
+#===================================== compile ========================================
+NDK_HOME=/home/why/soft/android-ndk-r17c-linux-x86_64/android-ndk-r17c
+BIN_PATH=${NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin
+
+CC=${BIN_PATH}/clang
+CXX=${BIN_PATH}/clang++
+AR=${BIN_PATH}/llvm-ar
+
+
+#===================================== section ========================================
+
+INC= -I . -I ${NDK_HOME}/sysroot/usr/include/arm-linux-androideabi/ 
+
+OF=--target=armv7-none-linux-androideabi --gcc-toolchain=${NDK_HOME}/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64 -isystem ${NDK_HOME}/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -Wall -O0 -DHAVE_USLEEP -fPIE -fsigned-char -funwind-tables -fstack-protector -Wno-psabi -fno-strict-aliasing  -DANDROID  -D__ANDROID__ -D__ARMEL__ -funsafe-math-optimizations -fvisibility=hidden -Wno-switch -Wno-sizeof-pointer-memaccess -funroll-loops 
+
+#CFLAGS+=$(INC) $(OF) #-ffast-math
+CFLAGS+=--sysroot=${NDK_HOME}/sysroot $(INC) $(OF) #-ffast-math
+
+#===================================== aim =========================================
+lib=liblapack.a
+ 
+#===================================== main ========================================
+
+%.o:%.c
+	$(CC) $(CFLAGS) -c -o $@ $<;
+%.o:%.cpp
+	$(CXX) $(CFLAGS) -c -o $@ $<;
+%.o:%.S
+	$(CC) $(CFLAGS) -c -o $@ $<;
+	
+all:$(lib)
+
+
+$(lib):$(objs)
+	$(AR) -arm-add-build-attributes rcs $(lib) $(objs)
+  
+	
+.PHONY:clean
+clean:
+	-rm $(objs) $(lib)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,251 @@
+#include config.mk
+
+SHELL=bash
+pwd=${shell pwd}
+
+###############Configure###################
+use_share=0
+dist=0
+use_debug=0    #for debug log
+
+src_dir= #wtk/core wtk/os wtk/tts/parser wtk/lex wtk/tts/tts-mer wtk/tts/tts-tac qtk/tts
+src_c=$(foreach v, $(src_dir), $(shell find $(v) -name "*.c"))
+src_cpp=$(foreach v, $(src_dir), $(shell find $(v) -name "*.cpp"))
+
+src_c+=wtk/core/cfg/wtk_main_cfg.c \
+wtk/core/cfg/wtk_cfg_file.c \
+wtk/core/cfg/wtk_source.c \
+wtk/core/cfg/wtk_local_cfg.c \
+wtk/core/cfg/wtk_cfg_queue.c \
+wtk/core/cfg/wtk_mbin_cfg.c \
+wtk/core/wtk_arg.c \
+wtk/core/wtk_kdict.c \
+wtk/core/wtk_str_hash.c \
+wtk/core/wtk_array.c \
+wtk/core/wtk_strpool.c \
+wtk/core/wtk_str.c \
+wtk/core/wtk_str_parser.c \
+wtk/core/wtk_strbuf.c \
+wtk/core/wtk_str_encode.c \
+wtk/core/wtk_queue.c \
+wtk/core/wtk_queue2.c \
+wtk/core/wtk_queue3.c \
+wtk/core/wtk_alloc.c \
+wtk/core/wtk_heap.c \
+wtk/core/wtk_larray.c \
+wtk/core/wtk_os.c \
+wtk/core/wtk_fkv.c \
+wtk/core/wtk_fkv2.c \
+wtk/core/wtk_treenode.c \
+wtk/core/wtk_rbtree.c \
+wtk/core/wtk_vpool.c \
+wtk/core/wtk_hoard.c \
+wtk/core/wtk_hash.c \
+wtk/core/wtk_robin.c \
+wtk/core/wtk_bit_heap.c \
+wtk/core/wtk_wavfile.c \
+wtk/core/wavehdr.c \
+wtk/core/rbin/wtk_flist.c \
+wtk/core/rbin/wtk_rbin.c \
+wtk/core/rbin/wtk_rbin2.c \
+wtk/core/math/wtk_mat.c \
+wtk/core/math/wtk_math.c \
+wtk/core/math/wtk_vector.c \
+wtk/core/math/wtk_matrix.c \
+wtk/core/segmenter/wtk_segmenter_cfg.c \
+wtk/core/segmenter/wtk_segmenter.c \
+wtk/core/segmenter/wtk_poseg_cfg.c \
+wtk/core/segmenter/wtk_poseg.c \
+wtk/core/segmenter/wtk_chnpos_cfg.c \
+wtk/core/segmenter/wtk_chnpos.c \
+wtk/core/segmenter/wtk_chnpos_model.c \
+wtk/core/segmenter/wtk_prune_cfg.c \
+wtk/core/segmenter/wtk_prune.c \
+wtk/core/segmenter/wtk_posdict.c \
+wtk/core/json/wtk_json.c \
+wtk/core/json/wtk_json_parse.c \
+qtk/tts/parse/qtk_tts_parse.c \
+qtk/tts/parse/qtk_tts_parse_cfg.c \
+qtk/tts/parse/qtk_tts_symbols_id_cfg.c \
+qtk/tts/parse/qtk_tts_symbols_id.c \
+qtk/tts/parse/qtk_tts_prosody.c \
+qtk/tts/parse/qtk_tts_prosody_cfg.c \
+qtk/tts/parse/qtk_tts_polyphone_cfg.c \
+qtk/tts/parse/qtk_tts_polyphone.c \
+qtk/tts/parse/qtk_tts_comm.c \
+qtk/tts/parse/dispoly/qtk_tts_dispoly_cfg.c \
+qtk/tts/parse/dispoly/qtk_tts_dispoly.c \
+qtk/tts/parse/segwrd/qtk_tts_segwrd_cfg.c \
+qtk/tts/parse/segwrd/qtk_tts_segwrd.c \
+qtk/tts/parse/ncrf/qtk_tts_ncrf_cfg.c \
+qtk/tts/parse/ncrf/qtk_tts_ncrf.c \
+wtk/tts/parser/wtk_tts_norm_cfg.c \
+wtk/tts/parser/wtk_tts_norm.c \
+wtk/tts/parser/wtk_tts_def.c \
+wtk/tts/parser/wtk_tts_segsnt_cfg.c \
+wtk/tts/parser/wtk_tts_segsnt.c \
+wtk/tts/parser/wtk_tts_segwrd_cfg.c \
+wtk/tts/parser/wtk_tts_segwrd.c \
+wtk/tts/parser/wtk_maxseg.c \
+wtk/tts/tts-mer/wtk-extend/wtk_heap2.c \
+wtk/tts/tts-mer/wtk-extend/wtk_mer_source_file.c \
+wtk/tts/tts-mer/wtk-extend/wtk_blas.c \
+wtk/tts/tts-mer/wtk-extend/wtk_mat2.c \
+wtk/tts/tts-mer/wtk-extend/wtk_file.c \
+wtk/tts/tts-mer/wtk-extend/nn/wtk_nn_activation.c \
+wtk/tts/tts-mer/wtk-extend/nn/wtk_nn.c \
+wtk/lex/wtk_lex_cfg.c \
+wtk/lex/wtk_lex.c \
+wtk/lex/ner/wtk_hmmne.c \
+wtk/lex/ner/wtk_hmmnr.c \
+wtk/lex/net/wtk_lex_net.c \
+wtk/lex/lexc/wtk_lexc_cfg.c \
+wtk/lex/lexc/wtk_lexc.c \
+wtk/lex/lexc/wtk_lex_script.c \
+wtk/lex/lexc/wtk_lex_ner_cfg.c \
+wtk/lex/lexr/wtk_lexr_cfg.c \
+wtk/lex/lexr/wtk_lexr.c \
+wtk/lex/lexr/wtk_lexr_lib_cfg.c \
+wtk/lex/lexr/wtk_lexr_lib.c \
+wtk/lex/lexr/wtk_treebin.c \
+wtk/lex/wrdvec/wtk_wrdvec_cfg.c \
+wtk/lex/wrdvec/wtk_wrdvec.c \
+qtk/soundtouch/qtk_soundtouch_cfg.c
+
+src_cpp+=third/soundtouch/source/SoundStretch/WavFile.cpp \
+third/soundtouch/source/SoundStretch/RunParameters.cpp \
+third/soundtouch/source/SoundTouch/AAFilter.cpp \
+third/soundtouch/source/SoundTouch/BPMDetect.cpp \
+third/soundtouch/source/SoundTouch/cpu_detect_x86.cpp \
+third/soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp \
+third/soundtouch/source/SoundTouch/FIRFilter.cpp \
+third/soundtouch/source/SoundTouch/InterpolateCubic.cpp \
+third/soundtouch/source/SoundTouch/InterpolateLinear.cpp \
+third/soundtouch/source/SoundTouch/InterpolateShannon.cpp \
+third/soundtouch/source/SoundTouch/PeakFinder.cpp \
+third/soundtouch/source/SoundTouch/RateTransposer.cpp \
+third/soundtouch/source/SoundTouch/SoundTouch.cpp \
+third/soundtouch/source/SoundTouch/sse_optimized.cpp \
+third/soundtouch/source/SoundTouch/mmx_optimized.cpp \
+third/soundtouch/source/SoundTouch/TDStretch.cpp \
+qtk/soundtouch/qtk_soundtouch_api.cpp
+
+exclude_dir= 
+
+exclude_c=$(foreach v, $(exclude_dir), $(shell find $(v) -name "*.c"))
+
+exclude_c+=
+
+exclude_cpp=$(foreach v, $(exclude_dir), $(shell find $(v) -name "*.cpp"))
+
+src_f_c=$(filter-out $(exclude_c),$(src_c))
+c_objs=$(patsubst %.c,%.o,$(src_f_c))
+src_f_cpp=$(filter-out $(exclude_cpp),$(src_cpp))
+cpp_objs=$(patsubst %.cpp,%.o,$(src_f_cpp))
+
+
+lib_objs=$(c_objs) $(cpp_objs)
+
+
+tool_dir= #test
+
+tool_c=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.c"))
+tool_c+=test/tts/tts_befor_process.c test/tts/rbin.c test/soundstretch.c
+tool_e=${patsubst %.c,%,${tool_c}}
+tool_o=${patsubst %.c,%.o,${tool_c}}
+
+tool_cpp=$(foreach v, $(tool_dir), $(shell find $(v) -name "*.cpp"))
+tool_cpp+= #third/soundtouch/source/SoundStretch/main.cpp
+tool_cpp_e=${patsubst %.cpp,%,${tool_cpp}}
+tool_o+=${patsubst %.cpp,%.o,${tool_cpp}}
+#generated tool
+tool_gen=${addprefix "tool/", ${notdir ${patsubst %.o, %, $(tool_o)}}}
+
+######################### lib section #####################################
+ifeq ($(use_share), 1)
+lib=./lib/linux/libtts.comm.so
+else
+lib=./lib/linux/libtts.comm.a
+endif
+
+############ gprof section ###############
+
+gprof_n=
+gprof_log=${gprof_n}.txt
+grpof_dot=${gprof_n}.dot
+gprof_png=${gprof_n}.png
+
+
+############### compile section ###############
+INC =-I . -I wtk/tts -I qtk/tts -Iqtk -I./wtk/tts/include -Ithird/soundtouch/include -Ithird/soundtouch/source/SoundStretch
+
+CC=gcc
+CXX=g++
+
+ifeq (${dist}, 1)
+OF=-O3 -Wno-write-strings #-msse4 -fopenmp
+else
+OF=-g -Wno-write-strings #-msse4 -fopenmp
+endif
+CFLAGS+=$(OF) $(INC)
+WFLAGS+= -Wall #-Werror
+
+LFLAGS+=-lm -lpthread
+
+ifeq ($(use_share), 1)
+	OF+=-fPIC
+endif
+
+ifeq (${use_debug},1)
+	CFLAGS += -DUSE_DEBUG
+endif
+
+ie=$(shell whereis libiconv|grep "so"|wc -l)
+ifeq (${ie},1)
+	LFLAGS += -liconv
+endif
+
+%.o:%.c
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o $@ $<
+
+%.o:%.cpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+
+all:$(lib) tools
+.PHONY: all clean
+
+
+tools:${lib}
+	for i in  $(tool_cpp_e); \
+	 	do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CXX} $(CFLAGS) -c -o $${i}.o  $${i}.cpp; \
+		${CXX} $(CFLAGS) -o tool/`basename $${i}`  $${i}.o ${lib} $(LFLAGS)  ; \
+	done;
+	for i in  ${tool_e}; \
+		do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CC} $(CFLAGS) ${WFLAGS} -c -o $${i}.o  $${i}.c; \
+		${CXX} $(CFLAGS) ${WFLAGS} -o tool/`basename $${i}`  $${i}.o ${lib} $(LFLAGS) ; \
+	done
+
+$(lib): $(lib_objs)
+	echo "lib="${lib}; 
+	mkdir -p `dirname ${lib}`; 
+	if [ $(use_share) -eq 1 ]; then \
+		$(CXX) $(LDFLAGS) $(CFLAGS) -shared -o $(lib) ${lib_objs}; \
+	else \
+		ar rv $(lib) $(lib_objs); \
+	fi
+
+
+prof:
+	gprof ${gprof_n} >$(gprof_log)
+	python ./shell/gprof2dot.py $(gprof_log) > ${grpof_dot}
+	dot -Tpng -o $(gprof_png) $(grpof_dot)
+
+
+clean:
+	-rm $(lib_objs) $(tool_o) $(tool_gen)
+

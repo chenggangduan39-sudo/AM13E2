@@ -1,0 +1,14 @@
+all:
+	make -f makefiles/tts/makefile.hts clean && make -f makefiles/tts/makefile.hts
+	make -f makefiles/tts/makefile.concatts clean && make -f makefiles/tts/makefile.concatts
+	make -f makefiles/tts/makefile.merlin clean && make -f makefiles/tts/makefile.merlin
+	make -f makefiles/tts/makefile.vits clean && make -f makefiles/tts/makefile.vits
+
+clean:
+	make -f makefiles/tts/makefile.hts clean
+	make -f makefiles/tts/makefile.concatts clean
+	make -f makefiles/tts/makefile.merlin clean
+	make -f makefiles/tts/makefile.vits clean
+	make -f makefiles/tts/makefile.lpcnet clean
+	make -f makefiles/tts/makefile.tac2 clean
+	make -f makefiles/tts/makefile.comm clean

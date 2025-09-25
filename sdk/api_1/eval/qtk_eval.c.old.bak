@@ -1,0 +1,324 @@
+﻿#include "qtk_eval.h"
+static void qtk_eval_init(qtk_eval_t *eval)
+{
+	eval->cfg = NULL;
+	eval->log = NULL;
+
+	eval->ins.httpzc = NULL;
+
+	eval->parser  = NULL;
+	eval->rlt_buf = NULL;
+	wtk_string_set(&eval->evaltxt,0,0);
+}
+
+void qtk_eval_add_httpzc_request_param(qtk_eval_t *eval,wtk_json_t *json,wtk_json_item_t *item)
+{
+	wtk_json_obj_add_str2_s(json,item,"text",eval->evaltxt.data,eval->evaltxt.len);
+}
+
+qtk_eval_t* qtk_eval_new(qtk_eval_cfg_t *cfg,qtk_session_t *session)
+{
+	qtk_eval_t *eval;
+	int ret;
+
+	eval = (qtk_eval_t*)wtk_malloc(sizeof(qtk_eval_t));
+	qtk_eval_init(eval);
+
+	eval->cfg = cfg;
+	eval->log = session->log;
+
+	if(cfg->use_cldeval) {
+		eval->ins.httpzc = qtk_httpzc_new(&cfg->httpzc,session->log);
+		qtk_httpzc_set_add_request_f(eval->ins.httpzc,eval,(qtk_httpzc_add_request_param_f)qtk_eval_add_httpzc_request_param);
+		if(!eval->ins.httpzc) {
+			ret = -1;
+			goto end;
+		}
+	} else if(cfg->engsnt) {
+		eval->ins.engsnt = wtk_engsnt_new(cfg->engsnt);
+	} else {
+		ret = -1;
+		goto end;
+	}
+
+	eval->rlt_buf = wtk_strbuf_new(512,1);
+	eval->parser = wtk_json_parser_new();
+
+	ret = 0;
+end:
+	if(ret != 0) {
+		qtk_eval_delete(eval);
+		eval = NULL;
+	}
+	return eval;
+}
+
+void qtk_eval_delete(qtk_eval_t *eval)
+{
+	if(eval->cfg->use_cldeval) {
+		if(eval->ins.httpzc) {
+			qtk_httpzc_delete(eval->ins.httpzc);
+		}
+	} else {
+		wtk_engsnt_delete(eval->ins.engsnt);
+	}
+
+	if(eval->parser) {
+		wtk_json_parser_delete(eval->parser);
+	}
+	if(eval->rlt_buf) {
+		wtk_strbuf_delete(eval->rlt_buf);
+	}
+
+	wtk_free(eval);
+}
+
+int qtk_eval_start(qtk_eval_t *eval,char *evaltxt,int len)
+{
+	int ret;
+
+	if(len <= 0) {
+		return -1;
+	}
+
+	if(eval->cfg->use_cldeval) {
+		wtk_string_set(&eval->evaltxt,evaltxt,len);
+		ret = qtk_httpzc_start(eval->ins.httpzc);
+		if(ret != 0) {
+			goto end;
+		}
+	} else {
+		ret = wtk_engsnt_start(eval->ins.engsnt,WTK_REFTXT_NORMAL,evaltxt,len);
+		if(ret != 0) {
+			goto end;
+		}
+	}
+
+	ret = 0;
+end:
+	return ret;
+}
+
+int qtk_eval_feed(qtk_eval_t *eval,char *data,int bytes,int is_end)
+{
+	int ret = 0;
+
+	if(eval->cfg->use_cldeval) {
+		ret = qtk_httpzc_feed(eval->ins.httpzc,data,bytes,is_end);
+	} else {
+		ret = wtk_engsnt_feed(eval->ins.engsnt,is_end?WTK_PARM_END:WTK_PARM_APPEND,data,bytes);
+	}
+
+	return ret;
+}
+
+int qtk_eval_reset(qtk_eval_t *eval)
+{
+	int ret = 0;
+
+	if(eval->cfg->use_cldeval) {
+		qtk_httpzc_reset(eval->ins.httpzc);
+	} else {
+		ret = wtk_engsnt_reset(eval->ins.engsnt);
+	}
+
+	return ret;
+}
+
+wtk_string_t qtk_eval_get_middle_phone(char *data,int bytes)
+{
+typedef enum{
+	QTK_EVAL_MP_INIT,
+	QTK_EVAL_MP_LEFT,
+}qtk_eval_mp_state_t;
+	qtk_eval_mp_state_t state;
+	wtk_string_t v;
+	char *s,*e;
+	int left;
+	int pos;
+
+	s = data;
+	e = data + bytes;
+	pos = 0;
+	left = 0;
+	state = QTK_EVAL_MP_INIT;
+	while(s<e) {
+		switch(state) {
+		case QTK_EVAL_MP_INIT:
+			if(*s == '-') {
+				state = QTK_EVAL_MP_LEFT;
+			}
+			++left;
+			break;
+		case QTK_EVAL_MP_LEFT:
+			if(*s == '+') {
+				goto end;
+			} else {
+				++pos;
+			}
+			break;
+		}
+		++s;
+	}
+
+end:
+	wtk_string_set(&v,data+left,pos);
+	return v;
+}
+
+int qtk_eval_wrd_phone_middle(wtk_json_t *json,wtk_json_item_t *item)
+{
+	wtk_json_item_t *i,*i1,*ichar,*iscore;
+	wtk_json_item_t *dst,*idst;
+	wtk_queue_node_t *qn,*qn1;
+	wtk_json_array_item_t *ai,*ai1;
+	wtk_string_t v;
+	int ret;
+
+	i = wtk_json_obj_get_s(item,"scores");
+	if(!i || i->type != WTK_JSON_ARRAY)
+	{
+		ret = -1;
+		goto end;
+	}
+
+	for(qn=i->v.array->pop;qn;qn=qn->next) {
+		ai = data_offset2(qn,wtk_json_array_item_t,q_n);
+		i1 = wtk_json_obj_get_s(ai->item,"phone");
+		if(i1 && i1->type == WTK_JSON_ARRAY)
+		{
+			dst = wtk_json_new_array(json);
+			for(qn1=i1->v.array->pop;qn1;qn1=qn1->next) {
+				ai1 = data_offset2(qn1,wtk_json_array_item_t,q_n);
+				ichar = wtk_json_obj_get_s(ai1->item,"char");
+				if(!ichar || ichar->type != WTK_JSON_STRING || ichar->v.str->len <= 0) {
+					continue;
+				}
+				iscore = wtk_json_obj_get_s(ai1->item,"score");
+				if(!iscore || iscore->type != WTK_JSON_NUMBER) {
+					continue;
+				}
+				v = qtk_eval_get_middle_phone(ichar->v.str->data,ichar->v.str->len);
+				idst = wtk_json_new_object(json);
+				wtk_json_obj_add_str2_s(json,idst,"ichar",v.data,v.len);
+				wtk_json_obj_add_ref_number_s(json,idst,"score",iscore->v.number);
+				wtk_json_array_add_item(json,dst,idst);
+			}
+			wtk_json_obj_remove_s(ai->item,"phone");
+			wtk_json_obj_add_item2_s(json,ai->item,"phone",dst);
+		}
+	}
+	ret = 0;
+end:
+	return ret;
+}
+
+
+static wtk_string_t qtk_eval_process_spx_result(qtk_eval_t *eval)
+{
+	wtk_json_parser_t *parser = eval->parser;
+	wtk_json_item_t *item;
+	wtk_string_t v;
+	int ret;
+
+	v = qtk_httpzc_get_result(eval->ins.httpzc);
+	if(v.len <= 0) {
+		goto end;
+	}
+
+	wtk_json_parser_reset(parser);
+	wtk_json_parser_parse(parser,v.data,v.len);
+
+	if(!parser->json->main) {
+		ret = -1;
+		goto end;
+	}
+
+	item = wtk_json_obj_get_s(parser->json->main,"result");
+	if(!item || item->type != WTK_JSON_OBJECT) {
+		ret = -1;
+		goto end;
+	}
+
+	if(eval->cfg->use_phone_ml) {
+		ret = qtk_eval_wrd_phone_middle(parser->json,item);
+		if(ret != 0) {
+			goto end;
+		}
+	}
+	wtk_json_item_print(item,eval->rlt_buf);
+	wtk_string_set(&v,eval->rlt_buf->data,eval->rlt_buf->pos);
+
+	ret = 0;
+end:
+	if(ret != 0) {
+		wtk_string_set(&v,0,0);
+	}
+	return v;
+}
+
+static wtk_string_t qtk_eval_process_engsnt_result(qtk_eval_t *eval)
+{
+	wtk_json_parser_t *parser = eval->parser;
+	wtk_string_t v;
+	char *result = NULL;
+	int result_len;
+	int ret;
+
+	ret = wtk_engsnt_get_jsonresult(eval->ins.engsnt,100,&result,&result_len);
+	if(ret != 0) {
+		goto end;
+	}
+
+	if(eval->cfg->use_phone_ml) {
+		wtk_json_parser_reset(parser);
+		wtk_json_parser_parse(parser,result,result_len);
+
+		if(!parser->json->main) {
+			ret = -1;
+			goto end;
+		}
+
+		ret = qtk_eval_wrd_phone_middle(parser->json,parser->json->main);
+		if(ret != 0) {
+			goto end;
+		}
+
+		wtk_json_item_print(parser->json->main,eval->rlt_buf);
+	} else {
+		wtk_strbuf_reset(eval->rlt_buf);
+		wtk_strbuf_push(eval->rlt_buf,result,result_len);
+	}
+
+	wtk_string_set(&v,eval->rlt_buf->data,eval->rlt_buf->pos);
+
+	ret = 0;
+end:
+	if(result) {
+		wtk_free(result);
+	}
+	if(ret != 0) {
+		wtk_string_set(&v,0,0);
+	}
+	return v;
+}
+
+wtk_string_t qtk_eval_get_result(qtk_eval_t *eval)
+{
+	wtk_string_t v;
+
+	if(eval->cfg->use_cldeval) {
+		v = qtk_eval_process_spx_result(eval);
+	} else {
+		v = qtk_eval_process_engsnt_result(eval);
+	}
+
+	return v;
+}
+
+void qtk_eval_cancel(qtk_eval_t *eval)
+{
+}
+
+
+

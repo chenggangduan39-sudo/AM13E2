@@ -1,0 +1,181 @@
+SHELL=bash
+pwd=${shell pwd}
+
+src_dir=wtk public third/lapack
+src_c=${shell find $(src_dir) -name "*.c"}
+c_objs=$(patsubst %.c,%.o,$(src_c))
+
+test_dir= test/asr
+test_c=${shell find $(test_dir) -name "*.c"}
+test_objs=$(patsubst %.c,%.o,$(test_c))
+test_cpp=${shell find $(test_dir) -name "*.cpp"}
+test_cpp_objs=$(patsubst %.cpp,%.o,$(test_cpp))
+
+src_cpp=${shell find $(src_dir) -name "*.cpp"}
+cpp_objs=$(patsubst %.cpp,%.o,$(src_cpp))
+
+
+use_cuda=0
+
+ifeq ($(use_cuda),1)
+	cu_dir=wtk/dnnsvr
+	cu_src=${shell find $(cu_dir) -name "*.cu"}
+	cu_objs=$(patsubst %.cu,%.o,$(cu_src))
+else
+	cu_objs= 
+endif
+
+lib_objs=$(c_objs) $(cpp_objs) $(cu_objs)
+objs=$(lib_objs) $(test_objs) ${test_cpp_objs} 
+
+tool_dir=test/tool
+tool_c=${shell find ${tool_dir} -name "*.c"}
+tool_c=./test/tool/bfio/bfio.c #./test/tool/kws.c ./test/tool/kws2.c ./test/tool/img.c
+
+tool_e=${patsubst %.c,%,${tool_c}}
+tool_cpp=${shell find ${tool_dir} -name "*.cpp"}
+tool_cpp_e=${patsubst %.cpp,%,${tool_cpp}}
+
+
+############### DNN SECTION #######################
+#mkl=1
+
+
+
+######################################################
+
+
+######################### lib section #####################################
+
+ifeq ($(mkl),1)
+	libs=    
+else
+	libs=${libspeex} ${libspeexdsp}
+
+endif 
+############################################################################
+
+
+############ test section ###############
+test=./a.out
+test_src=test/test.c
+
+gprof_n=./a.out
+gprof_n=./tool/kws
+#gprof_n=./tool/fstconf
+#gprof_n=./tool/parm
+gprof_log=a.txt
+grpof_dot=a.dot
+gprof_png=a.png
+
+
+############### compile section ###############
+INC =-I .  -I ./third #-D USE_RNN  #-I ./third/speex-1.2beta2/include/
+
+#icc=1
+ifeq ($(icc),1)
+	CC=/opt/intel/bin/icc
+	CXX=/opt/intel/bin/icc
+	DNN_CFLAG=-DUSE_MKL
+	INC+=-I /opt/intel/mkl/include
+	#DNN_LFLAG=-L/opt/intel/mkl/lib/intel64 -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a /opt/intel/mkl/lib/intel64/libmkl_core.a -Wl,--end-group
+    DNN_LFLAG=-mkl=parallel -L/opt/intel/mkl/lib/intel64 -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a /opt/intel/mkl/lib/intel64/libmkl_core.a -Wl,--end-group
+else
+	CC=gcc
+	CXX=g++
+	DNN_CFLAG=-I ./third/xspeex/speex/include/ -I ./third/xspeex/speexdsp/include 
+	DNN_LFLAG= 
+endif
+
+onnx=0
+ifeq ($(onnx),1)
+	DNN_CFLAG+=-I ./third/onnxruntime-linux-x64-1.11.1/include -DONNX_DEC
+endif
+
+avx=0
+ifeq ($(avx),1)
+	AVX_FLAGS=-mavx -DUSE_AVX
+endif
+
+dist=0
+ifeq ($(dist),1)
+	OF=-O3   #-march=native
+	WFLAGS= --fast-math  -Ofast  -funroll-loops -Wno-unused-result -march=native
+	CFLAGS= $(OF) $(INC) $(DNN_CFLAG) $(AVX_FLAGS)#-DSQLITE_ENABLE_FTS3	-DSQLITE_ENABLE_FTS3_PARENTHESIS
+else
+	OF=-g
+	CFLAGS= $(OF) $(INC) $(DNN_CFLAG) -Wno-write-strings  #-DSQLITE_ENABLE_FTS3	-DSQLITE_ENABLE_FTS3_PARENTHESIS
+	WFLAGS=
+endif
+LFLAGS=-lm -lpthread -ldl -lrt   ${libs} ${DNN_LFLAG} -lasound
+
+ifeq ($(use_cuda),1)
+	CFLAGS+=-D USE_GPU -I 	/usr/local/cuda/include/
+	LFLAGS+=-lcudart -lcublas -L/usr/local/cuda/lib64 -L /usr/local/cuda/lib64
+endif
+
+ie=$(shell whereis libiconv|grep "so"|wc -l)
+ifeq (${ie},1)
+	LFLAGS += -liconv
+endif
+
+ifeq ($(onnx),1)
+	LFLAGS += -lonnxruntime -L./third/onnxruntime-linux-x64-1.11.1/lib
+endif
+lib=asr.a
+
+
+%.o:%.cu
+	nvcc -I . -c $< -o $@ --use_fast_math  -O3; # -arch sm_20;
+
+%.o:%.c
+	$(CC) $(CFLAGS) ${WFLAGS} -c -o $@ $<;  
+
+%.o:%.cpp
+	$(CXX) $(CFLAGS) ${ATK_INC} -c -o $@ $<
+
+all: ${libs}  $(lib) $(test)  tools
+
+third/sqlite/sqlite3.o:./third/sqlite/sqlite3.c
+	$(CC) $(CFLAGS) -c -o $@ $< 	
+
+#.PHONY:tools 
+
+tools:${lib} ${test}
+	for i in  ${tool_cpp_e}; \
+	 	do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CXX} $(CFLAGS) -c -o $${i}.o  $${i}.cpp; \
+		${CXX} $(CFLAGS) -o tool/`basename $${i}`  $${i}.o ${test_objs} ${lib} $(LFLAGS)  ; \
+	 done;
+	for i in  ${tool_e}; \
+	 	do echo $${i}; \
+		if [ ! -d tool ]; then mkdir tool; fi;\
+		${CC} $(CFLAGS) ${WFLAGS} -c -o $${i}.o  $${i}.c; \
+		${CXX} $(CFLAGS) ${WFLAGS} -o tool/`basename $${i}`  $${i}.o ${test_objs} ${lib} $(LFLAGS) ; \
+	 done; 
+
+prof:
+	gprof ${gprof_n} >$(gprof_log)
+	python2 ./shell/gprof2dot.py $(gprof_log) > ${grpof_dot}
+	dot -Tpng -o $(gprof_png) $(grpof_dot)
+
+
+$(lib): $(lib_objs)
+	ar rv $(lib) $(lib_objs)
+
+$(test):$(test_src) $(objs)
+	$(CXX) $(CFLAGS) -o $(test) $(test_src)  $(objs) $(LFLAGS)
+
+t:
+	valgrind  --log-file="v.log" --leak-check=full --show-reachable=yes --track-origins=yes  $(test) >1.txt
+
+tx:
+	 valgrind --leak-check=full --show-reachable=yes --track-origins=yes   ./tool/fstmd -c ./res/aitv.0.0.1/fstmd.cfg   -d false -debug -p 8080 >v.log 2>&1
+
+
+clean:
+	-rm $(objs) ${lib} tool/*
+
+
+#valgrind  --log-file="v.log" --leak-check=full --show-reachable=yes --track-origins=yes  ./$(test)	

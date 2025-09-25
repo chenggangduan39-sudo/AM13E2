@@ -1,0 +1,937 @@
+#include "wtk_mat_mips.h" 
+
+void wtk_mati_multi_cu_mips_scale(wtk_mati_t *m,wtk_matc_t *a,wtk_matuc_t *b,int min,float scale)
+{
+	int i,j;
+	int t;
+	register signed char *tpa,*pae2;
+	register unsigned char *tpb;
+	//signed char *tpb;
+	signed char *pa,*pae,*pae3;
+	int *pm;
+	int col;
+	int col2;
+	int vx[2];
+	unsigned char v[4];
+	int nx;
+	int col_bytes=b->col_bytes;
+
+	v[0]=v[1]=v[2]=v[3]=abs(min);
+	//wtk_debug("a=%d/%d b=%d/%d/%d\n",a->row,a->col,b->row,b->col,b->col_bytes);
+	col=(a->col>>4)<<4;
+	col2=(a->col>>2)<<2;
+	//exit(0);
+    asm volatile (
+    		"S32LDD xr%0,%z1,0 \n"
+			:
+ 	        :"K"(xr5),"d"(v)
+ 	        );
+	for(pm=m->p,pa=a->p,i=0;i<a->row;++i,pa=pae)
+	{
+		pae=pa+a->col;
+		pae2=pa+col;
+		pae3=pa+col2;
+		//wtk_debug("i=%d\n",i);
+		for(j=0,nx=0;j<b->row;++j,nx+=col_bytes)
+		{
+			tpb=b->p+nx;
+			//wtk_debug("j=%d min=%d\n",j,min);
+			tpa=pa;
+		    asm volatile (
+		    		"S32XOR xr%0,xr%0,xr%0 \n"
+		    		"S32XOR xr%1,xr%1,xr%1 \n"
+					:
+		 	        :"K"(xr6),"K"(xr7)
+		 	        );
+			if(min<0)
+			{
+				while(tpa<pae2)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"S32LDD xr%4,%z0,4 \n"
+							"S32LDD xr%5,%z1,4 \n"
+							"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"D16ASUM xr%7,xr%2,xr%3,xr%8,AA\n"
+
+							"S32LDD xr%4,%z0,8 \n"
+							"S32LDD xr%5,%z1,8 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"S32LDD xr%4,%z0,12 \n"
+							"S32LDD xr%5,%z1,12 \n"
+							"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"D16ASUM xr%7,xr%2,xr%3,xr%8,AA\n"
+							:
+							:"d"(tpa),"d"(tpb),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr5),"K"(xr6),"K"(xr7) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=16;
+					tpb+=16;
+				}
+				while(tpa<pae3)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"D16ASUM xr%7,xr%2,xr%3,xr%8,AA\n"
+							:
+							:"d"(tpa),"d"(tpb),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr5),"K"(xr6),"K"(xr7) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=4;
+					tpb+=4;
+				}
+				S32STD(xr6,vx+0,0);
+				S32STD(xr7,vx+1,0);
+				t=vx[0]+vx[1];
+				//i=0;
+				//wtk_debug("tpa=%p/%p %d min=%d\n",tpa,pae,(int)(pae-tpa),min);
+				while(tpa<pae)
+				{
+					t+=*(tpa++)*(*(tpb++)+min);
+				}
+				//wtk_debug("t=%d\n",t);
+				//exit(0);
+			}else
+			{
+				wtk_debug("found bug xx\n");
+				t=0;
+				exit(0);
+			}
+			//wtk_debug("%d/%f/%f %p/%p/%d\n",t,scale,t*scale,tpa,pae,(int)(pae-tpa));
+			//exit(0);
+			*(pm++)=t*scale;
+			//*(pm++)=t*vs;
+		}
+	}
+	//exit(0);
+}
+
+
+void wtk_mati_multi_cu_mips_scale_2(wtk_mati_t *m,wtk_matc_t *a,wtk_matuc_t *b,int min,float scale)
+{
+	int j;
+	int t;
+	register signed char *tpa;
+	register unsigned char *tpb;
+	//signed char *tpb;
+	signed char *pa,*pae3,*pae,*pae2;
+	//signed char *pae;
+	int *pm;
+	int col;
+	int col2;
+	int vx[2];
+	unsigned char v[4];
+	int nx;
+	int col_bytes=b->col_bytes;
+	int xx;
+
+	v[0]=v[1]=v[2]=v[3]=abs(min);
+	//wtk_debug("a=%d/%d b=%d/%d/%d\n",a->row,a->col,b->row,b->col,b->col_bytes);
+	col=(a->col>>4)<<4;
+	col2=(a->col>>2)<<2;
+	//exit(0);
+    pm=m->p;
+    pa=a->p;
+//	asm volatile (
+//			"S32LDD xr%0,%z1,0 \n"
+//			:
+//			:"K"(xr5),"d"(v)
+//			);
+	//for(pm=m->p,pa=a->p,i=0;i<a->row;++i,pa=pae)
+	{
+		pae=pa+a->col;
+		pae2=pa+col;
+		pae3=pa+col2;
+		
+		tpa=pa;
+	    asm volatile (
+	    		"S32LDD xr%2,%z3,0 \n"
+	    		"S32XOR xr%0,xr%0,xr%0 \n"
+	    		"S32XOR xr%1,xr%1,xr%1 \n"
+				:
+	 	        :"K"(xr6),"K"(xr7),"K"(xr5),"d"(v)
+	 	        );
+		while(tpa<pae3)
+		{
+			asm volatile(
+					//"add xr%5,$zero,$zero \n"
+					"S32LDD xr%1,%z0,0 \n"
+					"Q8MULSU xr%2,xr%1,xr%4,xr%3\n"
+					"D16ASUM xr%5,xr%2,xr%3,xr%6,AA\n"
+					:
+					:"d"(tpa),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr5),"K"(xr6),"K"(xr7)  
+					//:"memory"
+					);
+			tpa+=4;
+		}
+		asm  volatile(
+				"S32STD xr%0,%z1,0 \n"
+				"S32STD xr%2,%z1,4 \n"
+				:
+				:"K"(xr6),"d"(vx),"K"(xr7)
+				:"memory"
+				);
+//		S32STD(xr6,vx+0,0);
+//		S32STD(xr7,vx+1,0);
+		xx=vx[0]+vx[1];
+		//wtk_debug("xx=%d\n",xx);
+		while(tpa<pae)
+		{
+			xx+=*(tpa++)*v[0];
+		}
+		
+		//wtk_debug("xx=%d\n",xx);
+		//wtk_debug("i=%d\n",i);
+		for(j=0,nx=0;j<b->row;++j,nx+=col_bytes)
+		{
+			tpb=b->p+nx;
+			//wtk_debug("j=%d min=%d\n",j,min);
+			tpa=pa;
+		    asm volatile (
+		    		"S32XOR xr%0,xr%0,xr%0 \n"
+		    		"S32XOR xr%1,xr%1,xr%1 \n"
+					:
+		 	        :"K"(xr6),"K"(xr7)
+		 	        );
+			if(min<0)
+			{
+				while(tpa<pae2)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							
+							"S32LDD xr%4,%z0,4 \n"
+							"S32LDD xr%5,%z1,4 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							
+							"S32LDD xr%4,%z0,8 \n"
+							"S32LDD xr%5,%z1,8 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							
+							"S32LDD xr%4,%z0,12 \n"
+							"S32LDD xr%5,%z1,12 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							:
+							:"d"(tpa),"d"(tpb),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7) //,"K"(xr5) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=16;
+					tpb+=16;
+				}
+				while(tpa<pae3)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							:
+							:"d"(tpa),"d"(tpb),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7) //,"K"(xr5) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=4;
+					tpb+=4;
+				}
+				asm  volatile(
+						"S32STD xr%0,%z1,0 \n"
+						"S32STD xr%2,%z1,4 \n"
+						:
+						:"K"(xr6),"d"(vx),"K"(xr7)
+						:"memory"
+						);
+//				S32STD(xr6,vx+0,0);
+//				S32STD(xr7,vx+1,0);
+				t=vx[0]+vx[1];
+				//i=0;
+				//wtk_debug("tpa=%p/%p %d min=%d\n",tpa,pae,(int)(pae-tpa),min);
+				while(tpa<pae)
+				{
+					//t+=*(tpa++)*(*(tpb++)+min);
+					t+=*(tpa++)*(*(tpb++));
+				}
+				//wtk_debug("t=%d\n",t);
+				//exit(0);
+			}else
+			{
+				wtk_debug("found bug xx\n");
+				t=0;
+				exit(0);
+			}
+			//wtk_debug("%d/%f/%f %p/%p/%d\n",t,scale,t*scale,tpa,pae,(int)(pae-tpa));
+			//wtk_debug("t=%d,xx=%d %d scale=%f/%f\n",t,xx,t+xx,scale,(t+xx)*scale);
+			//exit(0);
+			*(pm++)=(t-xx)*scale;
+			//*(pm++)=(t-xx)*vs;
+			//*(pm++)=(t)*vs;
+		}
+	}
+	//exit(0);
+}
+
+
+void wtk_mati_multi_cu_mips_2(wtk_mati_t *m,wtk_matc_t *a,wtk_matuc_t *b,int min)
+{
+	int j;
+	int t;
+	register signed char *tpa;
+	register unsigned char *tpb;
+	//signed char *tpb;
+	signed char *pa,*pae3,*pae,*pae2;
+	//signed char *pae;
+	int *pm;
+	int col;
+	int col2;
+	int vx[2];
+	unsigned char v[4];
+	int nx;
+	int col_bytes=b->col_bytes;
+	int xx;
+
+	v[0]=v[1]=v[2]=v[3]=abs(min);
+	//wtk_debug("a=%d/%d b=%d/%d/%d\n",a->row,a->col,b->row,b->col,b->col_bytes);
+	col=(a->col>>4)<<4;
+	col2=(a->col>>2)<<2;
+	//exit(0);
+    pm=m->p;
+    pa=a->p;
+//	asm volatile (
+//			"S32LDD xr%0,%z1,0 \n"
+//			:
+//			:"K"(xr5),"d"(v)
+//			);
+	//for(pm=m->p,pa=a->p,i=0;i<a->row;++i,pa=pae)
+	{
+		pae=pa+a->col;
+		pae2=pa+col;
+		pae3=pa+col2;
+		
+		tpa=pa;
+	    asm volatile (
+	    		"S32LDD xr%2,%z3,0 \n"
+	    		"S32XOR xr%0,xr%0,xr%0 \n"
+	    		"S32XOR xr%1,xr%1,xr%1 \n"
+				:
+	 	        :"K"(xr6),"K"(xr7),"K"(xr5),"d"(v)
+	 	        );
+		while(tpa<pae3)
+		{
+			asm volatile(
+					//"add xr%5,$zero,$zero \n"
+					"S32LDD xr%1,%z0,0 \n"
+					"Q8MULSU xr%2,xr%1,xr%4,xr%3\n"
+					"D16ASUM xr%5,xr%2,xr%3,xr%6,AA\n"
+					:
+					:"d"(tpa),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr5),"K"(xr6),"K"(xr7)  
+					//:"memory"
+					);
+			tpa+=4;
+		}
+		asm  volatile(
+				"S32STD xr%0,%z1,0 \n"
+				"S32STD xr%2,%z1,4 \n"
+				:
+				:"K"(xr6),"d"(vx),"K"(xr7)
+				:"memory"
+				);
+		xx=vx[0]+vx[1];
+		while(tpa<pae)
+		{
+			xx+=*(tpa++)*v[0];
+		}
+		
+		//wtk_debug("xx=%d\n",xx);
+		//wtk_debug("i=%d\n",i);
+		for(j=0,nx=0;j<b->row;++j,nx+=col_bytes)
+		{
+			tpb=b->p+nx;
+			//wtk_debug("j=%d min=%d\n",j,min);
+			tpa=pa;
+		    asm volatile (
+		    		"S32XOR xr%0,xr%0,xr%0 \n"
+		    		"S32XOR xr%1,xr%1,xr%1 \n"
+					:
+		 	        :"K"(xr6),"K"(xr7)
+		 	        );
+			if(min<0)
+			{
+				while(tpa<pae2)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							
+							"S32LDD xr%4,%z0,4 \n"
+							"S32LDD xr%5,%z1,4 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							
+							"S32LDD xr%4,%z0,8 \n"
+							"S32LDD xr%5,%z1,8 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							
+							"S32LDD xr%4,%z0,12 \n"
+							"S32LDD xr%5,%z1,12 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							:
+							:"d"(tpa),"d"(tpb),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7) //,"K"(xr5) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=16;
+					tpb+=16;
+				}
+				while(tpa<pae3)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							//"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							:
+							:"d"(tpa),"d"(tpb),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7) //,"K"(xr5) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=4;
+					tpb+=4;
+				}
+				asm  volatile(
+						"S32STD xr%0,%z1,0 \n"
+						"S32STD xr%2,%z1,4 \n"
+						:
+						:"K"(xr6),"d"(vx),"K"(xr7)
+						:"memory"
+						);
+//				S32STD(xr6,vx+0,0);
+//				S32STD(xr7,vx+1,0);
+				t=vx[0]+vx[1];
+				//i=0;
+				//wtk_debug("tpa=%p/%p %d min=%d\n",tpa,pae,(int)(pae-tpa),min);
+				while(tpa<pae)
+				{
+					//t+=*(tpa++)*(*(tpb++)+min);
+					t+=*(tpa++)*(*(tpb++));
+				}
+				//wtk_debug("t=%d\n",t);
+				//exit(0);
+			}else
+			{
+				wtk_debug("found bug xx\n");
+				t=0;
+				exit(0);
+			}
+			//wtk_debug("%d/%f/%f %p/%p/%d\n",t,scale,t*scale,tpa,pae,(int)(pae-tpa));
+			//wtk_debug("t=%d,xx=%d %d scale=%f/%f\n",t,xx,t+xx,scale,(t+xx)*scale);
+			//exit(0);
+			*(pm++)=(t-xx);
+			//*(pm++)=(t-xx)*vs;
+			//*(pm++)=(t)*vs;
+		}
+	}
+	//exit(0);
+}
+
+
+void wtk_mati_multi_cu_mips(wtk_mati_t *m,wtk_matc_t *a,wtk_matuc_t *b,int min)
+{
+	int i,j;
+	int t;
+	register signed char *tpa,*pae2;
+	unsigned char *tpb;
+	signed char *pa,*pae,*pae3;
+	int *pm;
+	int col;
+	int col2;
+	int vx[2];
+	unsigned char v[4];
+	int nx;
+	int col_bytes=b->col_bytes;
+
+	v[0]=v[1]=v[2]=v[3]=abs(min);
+	//wtk_debug("a=%d/%d b=%d/%d\n",a->row,a->col,b->row,b->col);
+	col=(a->col>>4)<<4;
+	col2=(a->col>>2)<<2;
+	//exit(0);
+    asm volatile (
+    		"S32LDD xr%0,%z1,0 \n"
+			:
+ 	        :"K"(xr5),"d"(v)
+ 	        );
+	for(pm=m->p,pa=a->p,i=0;i<a->row;++i,pa=pae)
+	{
+		pae=pa+a->col;
+		pae2=pa+col;
+		pae3=pa+col2;
+		//wtk_debug("i=%d\n",i);
+		for(j=0,nx=0;j<b->row;++j,nx+=col_bytes)
+		{
+			tpb=b->p+nx;
+			//wtk_debug("j=%d min=%d\n",j,min);
+			tpa=pa;
+		    asm volatile (
+		    		"S32XOR xr%0,xr%0,xr%0 \n"
+		    		"S32XOR xr%1,xr%1,xr%1 \n"
+					:
+		 	        :"K"(xr6),"K"(xr7)
+		 	        );
+			if(min<0)
+			{
+				while(tpa<pae2)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"S32LDD xr%4,%z0,4 \n"
+							"S32LDD xr%5,%z1,4 \n"
+							"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"D16ASUM xr%7,xr%2,xr%3,xr%8,AA\n"
+
+							"S32LDD xr%4,%z0,8 \n"
+							"S32LDD xr%5,%z1,8 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"S32LDD xr%4,%z0,12 \n"
+							"S32LDD xr%5,%z1,12 \n"
+							"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"D16ASUM xr%7,xr%2,xr%3,xr%8,AA\n"
+							:
+							:"d"(tpa),"d"(tpb),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr5),"K"(xr6),"K"(xr7) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=16;
+					tpb+=16;
+				}
+				while(tpa<pae3)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%6,xr%3,SS\n"
+							"D16ASUM xr%7,xr%2,xr%3,xr%8,AA\n"
+							:
+							:"d"(tpa),"d"(tpb),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr5),"K"(xr6),"K"(xr7) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=4;
+					tpb+=4;
+				}
+				asm  volatile(
+						"S32STD xr%0,%z1,0 \n"
+						"S32STD xr%2,%z1,4 \n"
+						:
+						:"K"(xr6),"d"(vx),"K"(xr7)
+						:"memory"
+						);
+//				S32STD(xr6,vx+0,0);
+//				S32STD(xr7,vx+1,0);
+				t=vx[0]+vx[1];
+				//i=0;
+				//wtk_debug("tpa=%p/%p\n",tpa,pae);
+				while(tpa<pae)
+				{
+					t+=*(tpa++)*(*(tpb++)+min);
+				}
+				//wtk_debug("t=%d\n",t);
+				//exit(0);
+			}else
+			{
+				wtk_debug("found bug xx\n");
+				t=0;
+				exit(0);
+			}
+			*(pm++)=t;
+		}
+	}
+	//exit(0);
+}
+
+void wtk_mati_multi_uc_mips(wtk_mati_t *m,wtk_matuc_t *a,wtk_matc_t *b)
+{
+	int i,j;
+	int t;
+	signed char *tpb;
+	unsigned char *tpa,*pa,*pae2,*pae,*pae3;
+	int *pm;
+	int col;
+	int col2;
+	int vx[2];
+	int nx;
+
+	//wtk_debug("a=%d/%d b=%d/%d\n",a->row,a->col,b->row,b->col);
+	col=(a->col>>4)<<4;
+	col2=(a->col>>2)<<2;
+	//exit(0);
+	for(pm=m->p,pa=a->p,i=0;i<a->row;++i,pa=pae)
+	{
+		pae=pa+a->col;
+		pae2=pa+col;
+		pae3=pa+col2;
+		//wtk_debug("i=%d\n",i);
+		for(j=0,nx=0;j<b->row;++j,nx+=b->col_bytes)
+		{
+			//wtk_debug("col=%d\n",b->col_bytes);
+			tpb=b->p+nx;
+			//wtk_debug("j=%d\n",j);
+			tpa=pa;
+		    asm volatile (
+		    		"S32XOR xr%0,xr%0,xr%0 \n"
+		    		"S32XOR xr%1,xr%1,xr%1 \n"
+					:
+		 	        :"K"(xr6),"K"(xr7)
+		 	        );
+		    //wtk_debug("======================\n");
+		    //wtk_debug("tpa=%p/%p %d\n",tpa,tpb,b->col_bytes);
+//		    if((((int)tpb)%4)!=0)
+//		    {
+//		    	exit(0);
+//		    }
+			while(tpa<pae2)
+			{
+				asm volatile(
+						//"add xr%5,$zero,$zero \n"
+						"S32LDD xr%4,%z0,0 \n"
+						"S32LDD xr%5,%z1,0 \n"
+						"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+						"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+						
+						"S32LDD xr%4,%z0,4 \n"
+						"S32LDD xr%5,%z1,4 \n"
+						//"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+						"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+						"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+
+						"S32LDD xr%4,%z0,8 \n"
+						"S32LDD xr%5,%z1,8 \n"
+						"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+						"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+						
+						"S32LDD xr%4,%z0,12 \n"
+						"S32LDD xr%5,%z1,12 \n"
+						"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+						//"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+						"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+						:
+						:"d"(tpb),"d"(tpa),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7) //"d"(vx),"d"(vx+1)
+						//:"memory"
+						);
+				tpa+=16;
+				tpb+=16;
+			}
+			while(tpa<pae3)
+			{
+				//wtk_debug("tpa=%p/%p\n",tpa,tpb);
+				asm volatile(
+						"S32LDD xr%4,%z0,0 \n"
+						"S32LDD xr%5,%z1,0 \n"
+						"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+						"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+						:
+						:"d"(tpb),"d"(tpa),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7) //"d"(vx),"d"(vx+1)
+						//:"memory"
+						);
+				tpa+=4;
+				tpb+=4;
+			}
+			asm  volatile(
+					"S32STD xr%0,%z1,0 \n"
+					"S32STD xr%2,%z1,4 \n"
+					:
+					:"K"(xr6),"d"(vx),"K"(xr7)
+					:"memory"
+					);
+//			S32STD(xr6,vx+0,0);
+//			S32STD(xr7,vx+1,0);
+			t=vx[0]+vx[1];
+			while(tpa<pae)
+			{
+				t+=*(tpa++)*(*(tpb++));
+			}
+			//wtk_debug("t=%d\n",t);
+			//exit(0);
+			*(pm++)=t;
+		}
+	}
+	//exit(0);
+}
+
+void wtk_mati_multi_uc_x_scale_mips(wtk_mati_t *m,wtk_matuc_t *a,wtk_matc_t *b,float scale,float min)
+{
+	int j;
+	int t;
+	signed char *tpb;
+	unsigned char *tpa,*pa,*pae2,*pae,*pae3;
+	int *pm;
+	int col;
+	int col2;
+	int vx[2];
+	int nx;
+	unsigned char v[4];
+	int vs;
+	int col_bytes;
+
+	vs=wtk_float_round(scale);
+	v[0]=v[1]=v[2]=v[3]=abs(wtk_float_round(min));
+	//wtk_debug("a=%d/%d b=%d/%d\n",a->row,a->col,b->row,b->col);
+	col=(a->col>>4)<<4;
+	col2=(a->col>>2)<<2;
+	//exit(0);
+    asm volatile (
+    		"S32LDD xr%0,%z1,0 \n"
+			:
+ 	        :"K"(xr5),"d"(v)
+ 	        );
+    //wtk_debug("row=%d\n",a->row);
+    pm=m->p;
+    pa=a->p;
+    col_bytes=b->col_bytes;
+	//for(pm=m->p,pa=a->p,i=0;i<a->row;++i,pa=pae)
+	{
+		pae=pa+a->col;
+		pae2=pa+col;
+		pae3=pa+col2;
+		//wtk_debug("i=%d\n",i);
+		for(j=0,nx=0;j<b->row;++j,nx+=col_bytes)
+		{
+			//wtk_debug("col=%d\n",b->col_bytes);
+			tpb=b->p+nx;
+			//wtk_debug("j=%d\n",j);
+			tpa=pa;
+		    asm volatile (
+		    		"S32XOR xr%0,xr%0,xr%0 \n"
+		    		"S32XOR xr%1,xr%1,xr%1 \n"
+					:
+		 	        :"K"(xr6),"K"(xr7)
+		 	        );
+			//S32STD(xr5,vx+0,0);
+			//wtk_debug("v=%x min=%f\n",vx[0],min);
+//		    if(min<0)
+//		    {
+				while(tpa<pae2)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"S32LDD xr%4,%z0,4 \n"
+							"S32LDD xr%5,%z1,4 \n"
+							"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							//"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+	
+							"S32LDD xr%4,%z0,8 \n"
+							"S32LDD xr%5,%z1,8 \n"
+							//"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"S32LDD xr%4,%z0,12 \n"
+							"S32LDD xr%5,%z1,12 \n"
+							"Q8MACSU xr%2,xr%4,xr%5,xr%3,AA\n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA\n"
+							:
+							:"d"(tpb),"d"(tpa),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7),"K"(xr5)
+							//:"memory"
+							);
+					tpa+=16;
+					tpb+=16;
+				}
+				while(tpa<pae3)
+				{
+					//wtk_debug("tpa=%p/%p\n",tpa,tpb);
+					asm volatile(
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3 \n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,SS \n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,AA \n"
+							:
+							:"d"(tpb),"d"(tpa),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7),"K"(xr5) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=4;
+					tpb+=4;
+				}
+//		    }else
+//		    {
+//		    	exit(0);
+//		    }
+			S32STD(xr6,vx+0,0);
+			S32STD(xr7,vx+1,0);
+			t=vx[0]+vx[1];
+			//t=0;
+			while(tpa<pae)
+			{
+				t+=(*(tpa++)+min)*(*(tpb++));
+				//t+=(*(tpa++))*(*(tpb++));
+			}
+			*(pm++)=t*vs;//scale;
+			//*(pm++)=t*scale;
+		}
+	}
+	//exit(0);
+}
+
+
+void wtk_mati_multi_uc_x_scale_mips_raw(wtk_mati_t *m,wtk_matuc_t *a,wtk_matc_t *b,float scale,float min)
+{
+	int i,j;
+	int t;
+	signed char *tpb;
+	unsigned char *tpa,*pa,*pae2,*pae,*pae3;
+	int *pm;
+	int col;
+	int col2;
+	int vx[2];
+	int nx;
+	unsigned char v[4];
+	int col_bytes;
+
+	v[0]=v[1]=v[2]=v[3]=abs(wtk_float_round(min));
+	//wtk_debug("a=%d/%d b=%d/%d\n",a->row,a->col,b->row,b->col);
+	col=(a->col>>4)<<4;
+	col2=(a->col>>2)<<2;
+	//exit(0);
+    asm volatile (
+    		"S32LDD xr%0,%z1,0 \n"
+			:
+ 	        :"K"(xr5),"d"(v)
+ 	        );
+    //wtk_debug("row=%d\n",a->row);
+    //pm=m->p;
+    //pa=a->p;
+    col_bytes=b->col_bytes;
+	for(pm=m->p,pa=a->p,i=0;i<a->row;++i,pa=pae)
+	{
+		pae=pa+a->col;
+		pae2=pa+col;
+		pae3=pa+col2;
+		//wtk_debug("i=%d\n",i);
+		for(j=0,nx=0;j<b->row;++j,nx+=col_bytes)
+		{
+			//wtk_debug("col=%d\n",b->col_bytes);
+			tpb=b->p+nx;
+			//wtk_debug("j=%d\n",j);
+			tpa=pa;
+		    asm volatile (
+		    		"S32XOR xr%0,xr%0,xr%0 \n"
+		    		"S32XOR xr%1,xr%1,xr%1 \n"
+					:
+		 	        :"K"(xr6),"K"(xr7)
+		 	        );
+			//S32STD(xr5,vx+0,0);
+			//wtk_debug("v=%x min=%f\n",vx[0],min);
+		    if(min<0)
+		    {
+				while(tpa<pae2)
+				{
+					asm volatile(
+							//"add xr%5,$zero,$zero \n"
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,3\n"
+							"S32LDD xr%4,%z0,4 \n"
+							"S32LDD xr%5,%z1,4 \n"
+							"Q8MACSU xr%2,xr%4,xr%5,xr%3,0\n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,3\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,0\n"
+	
+							"S32LDD xr%4,%z0,8 \n"
+							"S32LDD xr%5,%z1,8 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3\n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,3\n"
+							"S32LDD xr%4,%z0,12 \n"
+							"S32LDD xr%5,%z1,12 \n"
+							"Q8MACSU xr%2,xr%4,xr%5,xr%3,0\n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,3\n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,0\n"
+							:
+							:"d"(tpb),"d"(tpa),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7),"K"(xr5)
+							//:"memory"
+							);
+					tpa+=16;
+					tpb+=16;
+				}
+				while(tpa<pae3)
+				{
+					//wtk_debug("tpa=%p/%p\n",tpa,tpb);
+					asm volatile(
+							"S32LDD xr%4,%z0,0 \n"
+							"S32LDD xr%5,%z1,0 \n"
+							"Q8MULSU xr%2,xr%4,xr%5,xr%3 \n"
+							"Q8MACSU xr%2,xr%4,xr%8,xr%3,3 \n"
+							"D16ASUM xr%6,xr%2,xr%3,xr%7,0 \n"
+							:
+							:"d"(tpb),"d"(tpa),"K"(xr1),"K"(xr2),"K"(xr3),"K"(xr4),"K"(xr6),"K"(xr7),"K"(xr5) //"d"(vx),"d"(vx+1)
+							//:"memory"
+							);
+					tpa+=4;
+					tpb+=4;
+				}
+		    }else
+		    {
+		    	exit(0);
+		    }
+			S32STD(xr6,vx+0,0);
+			S32STD(xr7,vx+1,0);
+			t=vx[0]+vx[1];
+			//t=0;
+			while(tpa<pae)
+			{
+				t+=(*(tpa++)+min)*(*(tpb++));
+				//t+=(*(tpa++))*(*(tpb++));
+			}
+			//*(pm++)=t*vs;//scale;
+			*(pm++)=t*scale;
+		}
+	}
+	//exit(0);
+}

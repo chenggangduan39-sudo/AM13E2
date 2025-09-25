@@ -1,0 +1,79 @@
+#===================================== src ============================================
+arm_src_files := 
+  
+common_src_files := \
+f2c_blas.c \
+f2c.c \
+f2c_c_lapack.c \
+f2c_config.c \
+f2c_d_lapack.c \
+f2c_lapack.c \
+f2c_s_lapack.c \
+f2c_z_lapack.c \
+sgesvd.c \
+sgetri.c \  
+  
+  
+#src_c= $(filter-out $(arm_exclude_files),$(common_src_files) $(arm_src_files))
+src_c=$(common_src_files) $(arm_src_files)
+src_objc=$(filter %.o,$(patsubst %.c,%.o,$(src_c)))
+src_objs=$(filter %.o,$(patsubst %.S,%.o,$(src_c)))
+objs=$(src_objc) $(src_objs)
+
+#===================================== compile ========================================
+NDK_HOME=/home/why/soft/android-ndk-r25c-linux/android-ndk-r25c
+BIN_PATH=${NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin
+
+CC=${BIN_PATH}/armv7a-linux-androideabi27-clang
+CXX=${BIN_PATH}/armv7a-linux-androideabi27-clang++
+AR=${BIN_PATH}/llvm-ar
+
+
+#===================================== section ========================================
+
+INC= -I . 
+
+OF=-Wall -O0 -DHAVE_USLEEP -fPIE -fsigned-char -funwind-tables -fstack-protector -Wno-psabi -fno-strict-aliasing  -DANDROID  -D__ANDROID__ -D__ARMEL__ -funsafe-math-optimizations -fvisibility=hidden -Wno-switch -Wno-sizeof-pointer-memaccess -funroll-loops
+
+#CFLAGS+=$(INC) $(OF) #-ffast-math
+CFLAGS+=--sysroot=${BIN_PATH}/../sysroot $(INC) $(OF) #-ffast-math
+
+#===================================== aim =========================================
+lib=liblapack.a
+ 
+#===================================== main ========================================
+
+%.o:%.c
+	$(CC) $(CFLAGS) -c -o $@ $<;
+%.o:%.cpp
+	$(CXX) $(CFLAGS) -c -o $@ $<;
+%.o:%.S
+	$(CC) $(CFLAGS) -c -o $@ $<;
+	
+all:$(lib)
+
+
+$(lib):$(objs)
+	$(AR) -rcs $(lib) $(objs)
+  
+	
+.PHONY:clean
+clean:
+	-rm $(objs) $(lib)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
