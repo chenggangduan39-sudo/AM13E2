@@ -1,7 +1,40 @@
 #include "qtk_uart_client.h"
+#include "wtk/core/wtk_os.h"
+#include <stdarg.h>
 
 static double tm_s = 0;
 static double tm_e = 0;
+
+static void uart_log(const char *stage, const char *fmt, ...)
+{
+    char body[512];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(body, sizeof(body), fmt, ap);
+    va_end(ap);
+
+    double ts_ms = time_get_ms();
+    if (stage && stage[0] != '\0') {
+        wtk_debug("[UART][%s][%010.3f] %s\n", stage, ts_ms / 1000.0, body);
+    } else {
+        wtk_debug("[UART][%010.3f] %s\n", ts_ms / 1000.0, body);
+    }
+}
+
+static void uart_log_hex_payload(const char *stage, const uint8_t *data, size_t len)
+{
+    if (!data || len == 0 || len > 32) {
+        return;
+    }
+
+    char hex[32 * 3 + 1];
+    size_t pos = 0;
+    for (size_t i = 0; i < len && pos + 3 < sizeof(hex); ++i) {
+        pos += snprintf(hex + pos, sizeof(hex) - pos, "%02X%s", data[i], (i + 1 < len) ? " " : "");
+    }
+    hex[sizeof(hex) - 1] = '\0';
+    uart_log(stage, "payload(hex)=%s", hex);
+}
 #define USE_3308
 #define USE_LOG
 #ifdef USE_3308
@@ -305,100 +338,143 @@ static int map_mode_to_low_db(unsigned char mode)
         default:   return 0;   // 未知就取0
     }
 }
+static const char *uart_status_type_to_name(int type)
+{
+    switch (type) {
+    case QTK_UART_STATUS_MIC: return "MIC";
+    case QTK_UART_STATUS_SPEAKER: return "SPEAKER";
+    case QTK_UART_STATUS_LINEIN: return "LINE_IN";
+    case QTK_UART_STATUS_LINEOUT: return "LINE_OUT";
+    default: return "UNKNOWN";
+    }
+}
+
 static int send_audio_status_frame(qtk_uart_client_t *uc,uint8_t event_code1, uint8_t event_code2 ,int type) {
-	qtk_uart_recv_frame_t frame;
+        qtk_uart_recv_frame_t frame;
+        memset(&frame, 0, sizeof(frame));
 
-	// 构建帧
-	wtk_debug("-------------------------------->>>>>>\n");
-	frame.frame_header[0] = RESPONSE_FRAME_HEADER_0; // 0x90
-	frame.frame_header[1] = RESPONSE_FRAME_HEADER_1; // 0x40
-	frame.event_code[0] = event_code1;
-	frame.event_code[1] = event_code2;
+        frame.frame_header[0] = RESPONSE_FRAME_HEADER_0; // 0x90
+        frame.frame_header[1] = RESPONSE_FRAME_HEADER_1; // 0x40
+        frame.event_code[0] = event_code1;
+        frame.event_code[1] = event_code2;
 
-	wtk_debug("-------------------------------->>>>>>\n");
-	cJSON *port1 = cJSON_CreateObject();
-	FILE*fn = fopen("/oem/qdreamer/qsound/uart.cfg", "r");
-	char buf[1024] = {0};
-	int ret, s,is_use,is_lineinmic,pos=0;
-	char *pv;
-	ret = fread(buf, 1, sizeof(buf), fn);
-	// pos += snprintf(final_json + pos, sizeof(final_json) - pos, "[\n");
-	wtk_debug("-------------------------------->>>>>>\n");
-	if(type == QTK_UART_STATUS_MIC) {
-		pv = strstr(buf, "mic_shift2=");
-		s = atoi(pv + 11);
-		pv = strstr(buf, "VBOX3_MIC=");
-		is_use = atoi(pv + 10);
-		cJSON_AddNumberToObject(port1, "portType", 0);
-		cJSON_AddNumberToObject(port1, "portId", 0xaa00000);
-		cJSON_AddStringToObject(port1, "portName", "arrary_MIC");
-		if(!is_use)
-			cJSON_AddFalseToObject(port1, "isUse");
-		else
-			cJSON_AddTrueToObject(port1, "isUse");
-		cJSON_AddNumberToObject(port1, "gainLevel", s);
-		cJSON_AddNumberToObject(port1, "audioInputType", 0);
-		cJSON_AddFalseToObject(port1, "isLocalPlay");
-	}
-	else if(type == QTK_UART_STATUS_SPEAKER){
-		pv = strstr(buf,"VBOX3_SPK=");
-		is_use= atoi(pv+10);
-		read_register("/sys/bus/i2c/devices/3-0069/volume", &s);
-		cJSON_AddNumberToObject(port1, "portType", 4);
-		cJSON_AddNumberToObject(port1, "portId", 0xbb00003);
-		cJSON_AddStringToObject(port1, "portName", "SPK");
-		if(!is_use)
-			cJSON_AddFalseToObject(port1, "isUse");
-		else
-			cJSON_AddTrueToObject(port1, "isUse");
-		cJSON_AddNumberToObject(port1, "gainLevel", s);
-		cJSON_AddNumberToObject(port1, "audioInputType", 0);
-		cJSON_AddTrueToObject(port1, "isLocalPlay");
-	}else if(type == QTK_UART_STATUS_LINEIN){
-		pv = strstr(buf,"VBOX3_LINEIN=");
-		is_use= atoi(pv+13);
-		pv = strstr(buf, "vbox3_agc_level=");
-		s = atoi(pv + 16);
-		pv = strstr(buf,"USE_LINEIN_MIC=");
-		is_lineinmic = atoi(pv + 15);
-		cJSON_AddNumberToObject(port1, "portType", 1);
-		cJSON_AddNumberToObject(port1, "portId", 0xaa00002);
-		cJSON_AddStringToObject(port1, "portName", "Line_IN");
-		if(!is_use)
-			cJSON_AddFalseToObject(port1, "isUse");
-		else
-			cJSON_AddTrueToObject(port1, "isUse");
-		cJSON_AddNumberToObject(port1, "gainLevel", s);
-		if(!is_lineinmic)
-			cJSON_AddNumberToObject(port1, "audioInputType", 0);
-		else
-			cJSON_AddNumberToObject(port1, "audioInputType", 1);
-		cJSON_AddFalseToObject(port1, "isLocalPlay");
-	}else if(type == QTK_UART_STATUS_LINEOUT){
-		// if(access("/oem/qdreamer/qsound/lineout_pattern.txt",F_OK) == 0)
-		// {
-		// 	pv=file_read_buf("//oem/qdreamer/qsound/lineout_pattern.txt",&ret);
-		// 	is_use=atoi(pv);
-		// }
-		wtk_debug("-------------------------------->>>>>>\n");
-		pv = strstr(buf, "vbox3_agc_level=");
-		s = atoi(pv + 16);
-		wtk_debug("-------------------------------->>>>>>\n");
-		cJSON_AddNumberToObject(port1, "portType", 5);
-		cJSON_AddNumberToObject(port1, "portId", 0xbb00003);
-		cJSON_AddStringToObject(port1, "portName", "LINE_OUT");
-		cJSON_AddTrueToObject(port1, "isUse");
-		cJSON_AddNumberToObject(port1, "gainLevel", s);
-		cJSON_AddNumberToObject(port1, "audioInputType", 0);
-		cJSON_AddFalseToObject(port1, "isLocalPlay");
-		wtk_debug("-------------------------------->>>>>>\n");
-	}
-	wtk_debug("-------------------------------->>>>>>\n");
-	char *json_str = cJSON_Print(port1);
-	send_response(uc,&frame,(uint8_t*)json_str,strlen(json_str));
-	wtk_debug("-------------------------------->>>>>>\n");
-	cJSON_Delete(port1);
-	wtk_debug("-------------------------------->>>>>>\n");
+        FILE*fn = fopen("/oem/qdreamer/qsound/uart.cfg", "r");
+        if (!fn) {
+                uart_log("ASYNC", "audio-status open uart.cfg failed: %s", strerror(errno));
+                return -1;
+        }
+
+        char buf[1024] = {0};
+        size_t read_len = fread(buf, 1, sizeof(buf) - 1, fn);
+        fclose(fn);
+        if (read_len == 0) {
+                uart_log("ASYNC", "audio-status read uart.cfg failed: %s", strerror(errno));
+                return -1;
+        }
+
+        cJSON *port1 = cJSON_CreateObject();
+        if (!port1) {
+                uart_log("ASYNC", "audio-status create json failed");
+                return -1;
+        }
+
+        int s = 0;
+        int is_use = 0;
+        int is_lineinmic = 0;
+        char *pv = NULL;
+
+        if(type == QTK_UART_STATUS_MIC) {
+                pv = strstr(buf, "mic_shift2=");
+                if (pv) {
+                        s = atoi(pv + 11);
+                }
+                pv = strstr(buf, "VBOX3_MIC=");
+                if (pv) {
+                        is_use = atoi(pv + 10);
+                }
+                cJSON_AddNumberToObject(port1, "portType", 0);
+                cJSON_AddNumberToObject(port1, "portId", 0xaa00000);
+                cJSON_AddStringToObject(port1, "portName", "arrary_MIC");
+                if (is_use) {
+                        cJSON_AddTrueToObject(port1, "isUse");
+                } else {
+                        cJSON_AddFalseToObject(port1, "isUse");
+                }
+                cJSON_AddNumberToObject(port1, "gainLevel", s);
+                cJSON_AddNumberToObject(port1, "audioInputType", 0);
+                cJSON_AddFalseToObject(port1, "isLocalPlay");
+        }
+        else if(type == QTK_UART_STATUS_SPEAKER){
+                pv = strstr(buf,"VBOX3_SPK=");
+                if (pv) {
+                        is_use= atoi(pv+10);
+                }
+                read_register("/sys/bus/i2c/devices/3-0069/volume", &s);
+                cJSON_AddNumberToObject(port1, "portType", 4);
+                cJSON_AddNumberToObject(port1, "portId", 0xbb00003);
+                cJSON_AddStringToObject(port1, "portName", "SPK");
+                if (is_use) {
+                        cJSON_AddTrueToObject(port1, "isUse");
+                } else {
+                        cJSON_AddFalseToObject(port1, "isUse");
+                }
+                cJSON_AddNumberToObject(port1, "gainLevel", s);
+                cJSON_AddNumberToObject(port1, "audioInputType", 0);
+                cJSON_AddTrueToObject(port1, "isLocalPlay");
+        }else if(type == QTK_UART_STATUS_LINEIN){
+                pv = strstr(buf,"VBOX3_LINEIN=");
+                if (pv) {
+                        is_use= atoi(pv+13);
+                }
+                pv = strstr(buf, "vbox3_agc_level=");
+                if (pv) {
+                        s = atoi(pv + 16);
+                }
+                pv = strstr(buf,"USE_LINEIN_MIC=");
+                if (pv) {
+                        is_lineinmic = atoi(pv + 15);
+                }
+                cJSON_AddNumberToObject(port1, "portType", 1);
+                cJSON_AddNumberToObject(port1, "portId", 0xaa00002);
+                cJSON_AddStringToObject(port1, "portName", "Line_IN");
+                if (is_use) {
+                        cJSON_AddTrueToObject(port1, "isUse");
+                } else {
+                        cJSON_AddFalseToObject(port1, "isUse");
+                }
+                cJSON_AddNumberToObject(port1, "gainLevel", s);
+                cJSON_AddNumberToObject(port1, "audioInputType", is_lineinmic ? 1 : 0);
+                cJSON_AddFalseToObject(port1, "isLocalPlay");
+        }else if(type == QTK_UART_STATUS_LINEOUT){
+                pv = strstr(buf, "vbox3_agc_level=");
+                if (pv) {
+                        s = atoi(pv + 16);
+                }
+                cJSON_AddNumberToObject(port1, "portType", 5);
+                cJSON_AddNumberToObject(port1, "portId", 0xbb00003);
+                cJSON_AddStringToObject(port1, "portName", "LINE_OUT");
+                cJSON_AddTrueToObject(port1, "isUse");
+                cJSON_AddNumberToObject(port1, "gainLevel", s);
+                cJSON_AddNumberToObject(port1, "audioInputType", 0);
+                cJSON_AddFalseToObject(port1, "isLocalPlay");
+        }
+
+        char *json_str = cJSON_PrintUnformatted(port1);
+        if (!json_str) {
+                cJSON_Delete(port1);
+                uart_log("ASYNC", "audio-status serialize json failed");
+                return -1;
+        }
+
+        uint16_t event_code = ((uint16_t)event_code1 << 8) | event_code2;
+        uart_log("ASYNC", "TX event=0x%04X type=%s payload=%s",
+                 event_code, uart_status_type_to_name(type), json_str);
+
+        send_response(uc,&frame,(uint8_t*)json_str,strlen(json_str));
+
+        free(json_str);
+        cJSON_Delete(port1);
+        return 0;
 }
 #endif
 //读取寄存器
@@ -1390,25 +1466,19 @@ int qtk_uart_client_trsn_run(qtk_uart_client_t *uc, wtk_thread_t *thread)
     qtk_uart_recv_frame_t current_frame = {0};
     uint16_t data_len = 0;
     uint16_t data_index = 0;
-    uint16_t crc_expected = 0;
     uint8_t crc_data[256]; // 最大支持 256 字节数据
     int crc_pos = 0;
     int event_byte = 0;
-    int len_byte = 0;
-    int crc_byte = 0;
-	int first=1;
+    double frame_gap_ms = 0.0;
+    double frame_start_ms = 0.0;
+
+    uart_log("RX", "receiver thread started");
     while (uc->trsn_run) {
-		// wtk_debug("======>>>>>%p %p\n",uc,uc->uart);
         ret = qtk_uart_read(uc->uart, (char*)&byte, 1); // 逐字节读取
         if (ret <= 0) {
             usleep(10000); // 10ms
             continue;
         }
-		if(first){
-			wtk_debug("--------------->>>>>>>>>>>>>first_to_secendTime= %.2f\n",time_get_ms()-recvdata_time);
-			recvdata_time = time_get_ms();
-			first = 0;
-		}
         // printf(" %02X ",byte); // 调试用
         switch (state) {
             case PARSE_STATE_HEADER1:
@@ -1416,6 +1486,15 @@ int qtk_uart_client_trsn_run(qtk_uart_client_t *uc, wtk_thread_t *thread)
                     memset(&current_frame, 0, sizeof(current_frame));
                     current_frame.frame_header[0] = byte;
                     state = PARSE_STATE_HEADER2;
+                    double now_ms = time_get_ms();
+                    if (recvdata_time > 0) {
+                        frame_gap_ms = now_ms - recvdata_time;
+                        uart_log("RX", "start frame gap=%.3fms", frame_gap_ms);
+                    } else {
+                        uart_log("RX", "start frame");
+                    }
+                    recvdata_time = now_ms;
+                    frame_start_ms = now_ms;
                 }
                 break;
 
@@ -1444,7 +1523,6 @@ int qtk_uart_client_trsn_run(qtk_uart_client_t *uc, wtk_thread_t *thread)
             case RESP_STATE_DATA_LENGTH_2:
                 current_frame.data_length[1] = byte;
                 data_len =(current_frame.data_length[1] << 8) | current_frame.data_length[0];
-                printf("RESP_STATE_DATA_LENGTH:date_len : %d\n", data_len);
                 if (data_len > 0) {
                     current_frame.data = (uint8_t*)malloc(data_len);
                     if (!current_frame.data) {
@@ -1452,9 +1530,9 @@ int qtk_uart_client_trsn_run(qtk_uart_client_t *uc, wtk_thread_t *thread)
                         break;
                     }
                 }else{
-					state = RESP_STATE_CHECKSUM;
-					break;;
-				}
+                    state = RESP_STATE_CHECKSUM;
+                    break;
+                }
                 data_index = 0;
                 state = RESP_STATE_DATA;
                 break;
@@ -1462,9 +1540,7 @@ int qtk_uart_client_trsn_run(qtk_uart_client_t *uc, wtk_thread_t *thread)
                 if (data_index < data_len) {
                     current_frame.data[data_index++] = byte;
                 }
-                printf("data_index : %d\n",data_index);
                 if (data_index >= data_len) {
-                    printf("RESP_STATE_DATA:date_len : %d\n",data_len);
                     state = RESP_STATE_CHECKSUM;
                 }
                 break;
@@ -1483,9 +1559,6 @@ int qtk_uart_client_trsn_run(qtk_uart_client_t *uc, wtk_thread_t *thread)
             case RESP_STATE_FOOTER:
                 if (byte == FRAME_FOOTER) {
                     current_frame.frame_footer = byte;
-                    printf("Received Checksum: %02X %02X\n", 
-                    current_frame.checksum[0], 
-                    current_frame.checksum[1]);
                     // 构造 CRC 数据
                     crc_pos = 0;
                     crc_data[crc_pos++] = current_frame.event_code[0];
@@ -1495,14 +1568,18 @@ int qtk_uart_client_trsn_run(qtk_uart_client_t *uc, wtk_thread_t *thread)
                     for (int i = 0; i < data_len; i++) {
                         crc_data[crc_pos++] = current_frame.data[i];
                     }
-					// wtk_debug("current_frame.data[]: %02X\n",current_frame.data[0]);
                     uint16_t calc_crc = calculateModbusCRC(crc_data, crc_pos);
                     uint16_t recv_crc = current_frame.checksum[0] | (current_frame.checksum[1] << 8);
-					wtk_debug("----------------------now_delay = %.2f\n",time_get_ms()-recvdata_time);
+                    double duration_ms = frame_start_ms > 0 ? (time_get_ms() - frame_start_ms) : 0.0;
+                    uint16_t event_code = (current_frame.event_code[0] << 8) | current_frame.event_code[1];
                     if (calc_crc == recv_crc) {
+                        uart_log("RX", "frame event=0x%04X len=%u crc=0x%04X ok duration=%.3fms", event_code, data_len, recv_crc, duration_ms);
+                        if (data_len > 0) {
+                            uart_log_hex_payload("RX", current_frame.data, data_len < 16 ? data_len : 16);
+                        }
                         handle_uart_frame(uc, &current_frame);
                     } else {
-                        wtk_debug("CRC error: %04X vs %04X\n", recv_crc, calc_crc);
+                        uart_log("RX", "frame event=0x%04X len=%u crc=0x%04X invalid(calc=0x%04X) duration=%.3fms", event_code, data_len, recv_crc, calc_crc, duration_ms);
                     }
                 }
 
@@ -1511,7 +1588,6 @@ int qtk_uart_client_trsn_run(qtk_uart_client_t *uc, wtk_thread_t *thread)
                     current_frame.data = NULL;
                 }
                 state = PARSE_STATE_HEADER1;
-				first=1;
                 break;
         }
     }
@@ -1700,9 +1776,11 @@ void handle_uart_frame(qtk_uart_client_t *uc, qtk_uart_recv_frame_t *frame)
 	uint8_t response;
     uint16_t data_len = frame->data_length[0] | (frame->data_length[1] << 8);
     uint16_t event_code = frame->event_code[1] | (frame->event_code[0] << 8);
-	double utime=time_get_ms();
-    wtk_debug("Received event_code: 0x%04X\n", event_code);
-	wtk_debug("-------=========================================---->>>>>\n");
+        double utime=time_get_ms();
+    uart_log("DISPATCH", "event=0x%04X data_len=%u", event_code, data_len);
+        if (data_len > 0 && frame->data) {
+                uart_log_hex_payload("DISPATCH", frame->data, data_len < 16 ? data_len : 16);
+        }
     switch (event_code) {
 #ifdef chenggang
 		/* ===== 日志上报：开始包 ACK（兼容两种码）===== */
@@ -3241,7 +3319,6 @@ int parse_uart_frame(const uint8_t *data, int len, qtk_uart_recv_frame_t *frame)
 }
 static void send_active_response(qtk_uart_client_t *uc ,uint8_t event_code1, uint8_t event_code2,uint8_t *data, uint16_t data_len)
 {
-    wtk_debug("------------------------------>>>>>>>>>>>>>\n");
     qtk_uart_recv_frame_t resp = {
         .frame_header = {RESPONSE_FRAME_HEADER_0, RESPONSE_FRAME_HEADER_1},
         .event_code = {event_code1, event_code2},
@@ -3249,8 +3326,6 @@ static void send_active_response(qtk_uart_client_t *uc ,uint8_t event_code1, uin
         .data = (uint8_t *)data,
         .frame_footer = FRAME_FOOTER
     };
-    
-    wtk_debug("-----------------------------__>>>>>>>>>>>>>>>>>\n");
     int crc_data_len = 4 + data_len;
     uint8_t *crc_data = (uint8_t *)malloc(crc_data_len);
     if (crc_data) {
@@ -3262,21 +3337,18 @@ static void send_active_response(qtk_uart_client_t *uc ,uint8_t event_code1, uin
         if (data_len > 0) {
             memcpy(crc_data + pos, data, data_len);
         }
-        
+
         uint16_t crc = calculateModbusCRC(crc_data, crc_data_len);
         resp.checksum[0] = crc & 0xFF;
         resp.checksum[1] = (crc >> 8) & 0xFF;
-        
+
         free(crc_data);
     } else {
         resp.checksum[0] = 0x00;
         resp.checksum[1] = 0x00;
     }
-    
-    wtk_debug("-----------------------------__>>>>>>>>>>>>>>>>>\n");
     int frame_len = 9 + data_len; // 2头 + 2事件 + 2长度 + 数据 + 2CRC + 1尾
     uint8_t *send_buf = (uint8_t *)malloc(frame_len);
-    wtk_debug("-----------------------------__>>>>>>>>>>>>>>>>>\n");
     if (send_buf) {
         int pos = 0;
         memcpy(send_buf + pos, resp.frame_header, 2);
@@ -3285,28 +3357,31 @@ static void send_active_response(qtk_uart_client_t *uc ,uint8_t event_code1, uin
         pos += 2;
         memcpy(send_buf + pos, resp.data_length, 2);
         pos += 2;
-        
+
         if (data_len > 0) {
             memcpy(send_buf + pos, data, data_len);
             pos += data_len;
         }
-        
+
         memcpy(send_buf + pos, resp.checksum, 2);
         pos += 2;
         send_buf[pos++] = resp.frame_footer;
-    	wtk_debug("-----------------------------__>>>>>>>>>>>>>>>>>\n");
         int ret = qtk_uart_write2(uc->uart, (char*)send_buf, pos);
-    	wtk_debug("-----------------------------__>>>>>>>>>>>>>>>>>\n");
+        uint16_t event_code = ((uint16_t)event_code1 << 8) | event_code2;
+        uart_log("TX-ACTIVE", "event=0x%04X len=%u bytes=%d", event_code, data_len, ret);
+        if (data_len > 0) {
+            uart_log_hex_payload("TX-ACTIVE", data, data_len < 16 ? data_len : 16);
+        }
         free(send_buf);
     }
 }
-static void send_response(qtk_uart_client_t *uc, 
+
+static void send_response(qtk_uart_client_t *uc,
                                 qtk_uart_recv_frame_t *req_frame,
                                 uint8_t *data,
-							    uint16_t data_len)
+                                                            uint16_t data_len)
 {
-	wtk_debug("------------------------------>>>>>>>>>>>>>\n");
-	qtk_uart_recv_frame_t resp = {
+        qtk_uart_recv_frame_t resp = {
         .frame_header = {RESPONSE_FRAME_HEADER_0, RESPONSE_FRAME_HEADER_1},
         .event_code = {req_frame->event_code[0], req_frame->event_code[1]},
         .data_length = {data_len & 0xFF,(data_len >> 8) & 0xFF},
@@ -3327,7 +3402,7 @@ static void send_response(qtk_uart_client_t *uc,
         uint16_t crc = calculateModbusCRC(crc_data, crc_data_len);
         resp.checksum[0] = crc & 0xFF;
         resp.checksum[1] = (crc >> 8) & 0xFF;
-        
+
         free(crc_data);
     } else {
         resp.checksum[0] = 0x00;
@@ -3347,30 +3422,22 @@ static void send_response(qtk_uart_client_t *uc,
             memcpy(send_buf + pos, data, data_len);
             pos += data_len;
         }
-		wtk_debug("------------------------------>>>>>>>>>>>>>\n");
         memcpy(send_buf + pos, resp.checksum, 2);
         pos += 2;
         send_buf[pos++] = resp.frame_footer;
         int ret = qtk_uart_write2(uc->uart, (char*)send_buf, pos);
-        wtk_debug("Send log frame: len=%d\n", ret);
-        wtk_debug("Header: %02X %02X\n", resp.frame_header[0], resp.frame_header[1]);
-        wtk_debug("Event: %02X %02X\n", resp.event_code[0], resp.event_code[1]);
-        wtk_debug("Length: %02X %02X (%d bytes)\n", 
-                 resp.data_length[0], resp.data_length[1], data_len);
-        if (data_len ==1) {
-            // wtk_debug("Data:%02X\n“,re);
-			wtk_debug("value: 0x%02X\n", *data);
-        }else{
-			// for (size_t i = 0; i < data_len; i++) {
-			// 	printf("0x%02X ", data[i]);
-			// }
-			// // printf("\n"); // 最后换行
-		}
-        wtk_debug("CRC: %02X %02X\n", resp.checksum[0], resp.checksum[1]);
-        wtk_debug("Footer: %02X\n", resp.frame_footer);
+        uint16_t event_code = ((uint16_t)resp.event_code[0] << 8) | resp.event_code[1];
+        int is_async = (req_frame->frame_header[0] == RESPONSE_FRAME_HEADER_0 &&
+                        req_frame->frame_header[1] == RESPONSE_FRAME_HEADER_1);
+        const char *stage = is_async ? "TX-ASYNC" : "TX-ACK";
+        uart_log(stage, "event=0x%04X len=%u bytes=%d", event_code, data_len, ret);
+        if (data_len > 0) {
+            uart_log_hex_payload(stage, data, data_len < 16 ? data_len : 16);
+        }
         free(send_buf);
-	}
+        }
 }
+
 unsigned short calculateModbusCRC(unsigned char *data, int length) {
 	unsigned short crc = 0xFFFF;// 初始化 CRC 值
     unsigned char b;
