@@ -1,0 +1,874 @@
+qtk_uart_cfg_update_local:50:dev=/dev/ttyS4
+qtk_uart_set_config:295:baude = 115200
+qtk_uart_set_config:295:baude = 115200
+===>>>key 2047346586
+===>>>shmid 0
+qtk_uart_client_new:1036:====>>>>cp.pid_client=992   getpid=1148
+qtk_uart_client_new:1065:================>>>>>>>>>new ok!
+uart_log:18:[UART][RX][000013.424] receiver thread started
+uart_log:18:[UART][RX][000029.086] start frame
+uart_log:18:[UART][RX][000029.086] frame event=0x0105 len=1 crc=0xCC48 ok duration=0.419ms
+uart_log:18:[UART][RX][000029.086] payload(hex)=00
+uart_log:18:[UART][DISPATCH][000029.086] event=0x0105 data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000029.086] payload(hex)=00
+handle_uart_frame:1971:------------------_>>>>>>now_start_to_deal = 0.57,0.04
+handle_uart_frame:1977:================fread=[use_uart=1;
+uart={
+	dev=/dev/ttyS4; #串口节点
+	baude=115200;#波特率
+	c_flow=0;#流控(0 不使用| 1 硬件流控| 2 软件流控)
+	bits=8; #数据位(5,6,7,8)
+	parity=0;#校验位(0 不使用| 1 奇校验 | 2 偶检验)
+	stop=1;#停止位(1 1停止位| 2 2停止位)
+	step_size=4096;#每1ms 发送的字节数
+};
+
+VBOX3_ANS=0;
+VBOX3_AGC=0;
+VBOX3_AEC=0;
+VBOX3_MIC=1;                                                       
+VBOX3_SPK=1;                                         
+VBOX3_LINEIN=1;
+USE_LINEIN_SPK=1;
+USE_LINEIN_MIC=0;
+vbox3_aec_level=1;
+vbox3_agc_level=0;
+vbox3_anc_level=0;
+mic_shift2=5.88;]
+handle_uart_frame:1985:+========>>>>>>s=322 pc=V
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+qtk_proc_write:806:input>[SET_MICANC_OFF]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2007:------------------_>>>>>>>now_delay = 33.87,33.34
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000029.121] event=0x0105 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000029.121] payload(hex)=00
+handle_uart_frame:2043:------------------_>>>>>>>finish_send_response = 35.19,34.66
+handle_uart_frame:2051:------------------_>>>>>>>now_delay = 41.73,41.20
+handle_uart_frame:2052:---------------------------------->>>>>>>>>isnot_spk_count = 1
+uart_log:18:[UART][RX][000029.446] start frame gap=359.722ms
+uart_log:18:[UART][RX][000029.446] frame event=0x0104 len=0 crc=0x1940 ok duration=0.195ms
+uart_log:18:[UART][DISPATCH][000029.446] event=0x0104 data_len=0
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!handle_uart_frame:2060:------------------_>>>>>>now_start_to_deal = 0.25,0.03
+qtk_uart_client_get_arg:831:==================>>>>>>>1024
+handle_uart_frame:2063:anc status: 0
+handle_uart_frame:2070:------------------_>>>>>>>now_delay = 0.45,0.23
+handle_uart_frame:2071:anc status: 0x00
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000029.447] event=0x0104 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000029.447] payload(hex)=00
+handle_uart_frame:2075:------------------_>>>>>>>finish_send_response = 1.86,1.64
+handle_uart_frame:2076:---------------------------------->>>>>>>>>isnot_spk_count = 2
+uart_log:18:[UART][RX][000029.773] start frame gap=327.770ms
+uart_log:18:[UART][RX][000029.773] frame event=0x0107 len=1 crc=0xB488 ok duration=0.234ms
+uart_log:18:[UART][RX][000029.774] payload(hex)=01
+uart_log:18:[UART][DISPATCH][000029.774] event=0x0107 data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000029.774] payload(hex)=01
+handle_uart_frame:2084:------------------_>>>>>>now_start_to_deal = 0.35,0.05
+handle_uart_frame:2126:------------------_>>>>>>>now_delay = 0.44,0.15
+handle_uart_frame:2130:------------------_>>>>>>>now_delay = 0.56,0.26
+handle_uart_frame:2134:------------------_>>>>>>>now_delay = 0.58,0.29
+handle_uart_frame:2139:+========>>>>>>s=335 pc=V
+handle_uart_frame:2141:------------------_>>>>>>>now_delay = 0.65,0.35
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+qtk_proc_write:806:input>[SET_MICAGC_ON]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2161:------------------_>>>>>>>now_delay = 34.87,34.57
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000029.809] event=0x0107 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000029.809] payload(hex)=00
+handle_uart_frame:2163:------------------_>>>>>>>finish_send_response = 36.18,35.89
+handle_uart_frame:2173:------------------_>>>>>>>now_delay = 39.15,38.86
+handle_uart_frame:2174:---------------------------------->>>>>>>>>isnot_spk_count = 3
+uart_log:18:[UART][RX][000030.128] start frame gap=354.294ms
+uart_log:18:[UART][RX][000030.128] frame event=0x0106 len=0 crc=0xD9E1 ok duration=0.187ms
+uart_log:18:[UART][DISPATCH][000030.128] event=0x0106 data_len=0
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!handle_uart_frame:2182:------------------_>>>>>>now_start_to_deal = 0.28,0.07
+handle_uart_frame:2184:------------------_>>>>>>>now_delay = 0.29,0.08
+qtk_uart_client_get_arg:831:==================>>>>>>>1024
+handle_uart_frame:2186:agc status: 1
+handle_uart_frame:2188:------------------_>>>>>>>now_delay = 0.56,0.35
+handle_uart_frame:2194:------------------_>>>>>>>now_delay = 0.58,0.37
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000030.129] event=0x0106 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000030.129] payload(hex)=01
+handle_uart_frame:2196:------------------_>>>>>>>finish_send_response = 1.76,1.55
+handle_uart_frame:2199:---------------------------------->>>>>>>>>isnot_spk_count = 4
+uart_log:18:[UART][RX][000030.444] start frame gap=315.990ms
+uart_log:18:[UART][RX][000030.444] frame event=0x0109 len=1 crc=0x9C4B ok duration=0.250ms
+uart_log:18:[UART][RX][000030.444] payload(hex)=00
+uart_log:18:[UART][DISPATCH][000030.444] event=0x0109 data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000030.444] payload(hex)=00
+handle_uart_frame:2206:------------------_>>>>>>now_start_to_deal = 0.40,0.10
+handle_uart_frame:2210:------------------_>>>>>>>now_delay = 0.54,0.23
+handle_uart_frame:2213:================fread=[use_uart=1;
+uart={
+	dev=/dev/ttyS4; #串口节点
+	baude=115200;#波特率
+	c_flow=0;#流控(0 不使用| 1 硬件流控| 2 软件流控)
+	bits=8; #数据位(5,6,7,8)
+	parity=0;#校验位(0 不使用| 1 奇校验 | 2 偶检验)
+	stop=1;#停止位(1 1停止位| 2 2停止位)
+	step_size=4096;#每1ms 发送的字节数
+};
+
+VBOX3_ANS=0;
+VBOX3_AGC=1;
+VBOX3_AEC=0;
+VBOX3_MIC=1;                                                       
+VBOX3_SPK=1;                                         
+VBOX3_LINEIN=1;
+USE_LINEIN_SPK=1;
+USE_LINEIN_MIC=0;
+vbox3_aec_level=1;
+vbox3_agc_level=0;
+vbox3_anc_level=0;
+mic_shift2=5.88;]
+handle_uart_frame:2214:------------------_>>>>>>>now_delay = 0.66,0.35
+handle_uart_frame:2221:+========>>>>>>s=348 pc=V
+handle_uart_frame:2223:------------------_>>>>>>>now_delay = 0.74,0.44
+handle_uart_frame:2225:------------------_>>>>>>>now_delay = 0.76,0.45
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+qtk_proc_write:806:input>[SET_MICAEC_OFF]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2239:------------------_>>>>>>>now_delay = 35.98,35.67
+handle_uart_frame:2289:------------------_>>>>>>>now_delay = 36.01,35.70
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000030.481] event=0x0109 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000030.481] payload(hex)=00
+handle_uart_frame:2291:------------------_>>>>>>>finish_send_response = 37.33,37.03
+handle_uart_frame:2301:------------------_>>>>>>>now_delay = 45.24,44.93
+handle_uart_frame:2302:---------------------------------->>>>>>>>>isnot_spk_count = 5
+uart_log:18:[UART][RX][000030.816] start frame gap=372.843ms
+uart_log:18:[UART][RX][000030.817] frame event=0x0108 len=0 crc=0x1A80 ok duration=0.213ms
+uart_log:18:[UART][DISPATCH][000030.817] event=0x0108 data_len=0
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!handle_uart_frame:2309:------------------_>>>>>>now_start_to_deal = 0.28,0.03
+handle_uart_frame:2311:------------------_>>>>>>>now_delay = 0.30,0.05
+qtk_uart_client_get_arg:831:==================>>>>>>>1024
+handle_uart_frame:2314:------------------_>>>>>>>now_delay = 0.50,0.25
+handle_uart_frame:2315:AEC Response:AEC level 0
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000030.818] event=0x0108 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000030.818] payload(hex)=00
+handle_uart_frame:2326:------------------_>>>>>>>finish_send_response = 1.75,1.51
+handle_uart_frame:2328:------------------_>>>>>>>now_delay = 1.77,1.52
+handle_uart_frame:2329:---------------------------------->>>>>>>>>isnot_spk_count = 6
+uart_log:18:[UART][RX][000031.151] start frame gap=334.848ms
+uart_log:18:[UART][RX][000031.151] frame event=0x0112 len=5 crc=0x636F ok duration=0.251ms
+uart_log:18:[UART][RX][000031.152] payload(hex)=01 00 00 00 36
+uart_log:18:[UART][DISPATCH][000031.152] event=0x0112 data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000031.152] payload(hex)=01 00 00 00 36
+handle_uart_frame:2815:------------------_>>>>>>now_start_to_deal = 0.35,0.05
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2824:--------------SET_MICVOLUME==54
+qtk_proc_write:806:input>[SET_MICVOLUME54]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2836:------------------_>>>>>>>now_delay = 30.36,30.07
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000031.183] event=0x0112 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000031.183] payload(hex)=00
+handle_uart_frame:2838:------------------_>>>>>>>finish_send_response = 31.76,31.47
+handle_uart_frame:2839:---------------------------------->>>>>>>>>isnot_spk_count = 7
+uart_log:18:[UART][RX][000031.502] start frame gap=350.706ms
+uart_log:18:[UART][RX][000031.502] frame event=0x0110 len=4 crc=0x7E90 ok duration=0.274ms
+uart_log:18:[UART][RX][000031.502] payload(hex)=01 00 00 00
+uart_log:18:[UART][DISPATCH][000031.502] event=0x0110 data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000031.502] payload(hex)=01 00 00 00
+handle_uart_frame:2798:------------------_>>>>>>now_start_to_deal = 0.37,0.05
+handle_uart_frame:2802:------------------_>>>>>>>now_delay = 0.38,0.06
+handle_uart_frame:2803:MIC volume_value: 0x36
+handle_uart_frame:2804:------------------_>>>>>>>now_delay = 0.41,0.08
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000031.504] event=0x0110 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000031.504] payload(hex)=36
+handle_uart_frame:2806:------------------_>>>>>>>finish_send_response = 1.68,1.35
+handle_uart_frame:2807:---------------------------------->>>>>>>>>isnot_spk_count = 8
+uart_log:18:[UART][RX][000031.835] start frame gap=332.795ms
+uart_log:18:[UART][RX][000031.835] frame event=0x0113 len=5 crc=0x4E17 ok duration=0.277ms
+uart_log:18:[UART][RX][000031.835] payload(hex)=03 00 00 00 4B
+uart_log:18:[UART][DISPATCH][000031.835] event=0x0113 data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000031.835] payload(hex)=03 00 00 00 4B
+handle_uart_frame:2872:------------------>>>>>>75
+handle_uart_frame:2880:------->echo 75 > /sys/bus/i2c/devices/3-006d/volume
+handle_uart_frame:2888:------->echo 75 > /sys/bus/i2c/devices/3-0069/volume
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000031.840] event=0x0113 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000031.840] payload(hex)=00
+handle_uart_frame:2890:------------------_>>>>>>>finish_send_response = 5.71,5.33
+uart_log:18:[UART][RX][000032.158] start frame gap=323.364ms
+uart_log:18:[UART][RX][000032.158] frame event=0x0111 len=4 crc=0x0681 ok duration=0.270ms
+uart_log:18:[UART][RX][000032.158] payload(hex)=03 00 00 00
+uart_log:18:[UART][DISPATCH][000032.158] event=0x0111 data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000032.158] payload(hex)=03 00 00 00
+handle_uart_frame:2850:------------------_>>>>>>now_start_to_deal = 0.39,0.05
+handle_uart_frame:2855:------------------_>>>>>>>now_delay = 0.40,0.06
+handle_uart_frame:2857:The value is: 75
+handle_uart_frame:2861:------------------_>>>>>>>now_delay = 2.71,2.37
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000032.162] event=0x0111 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000032.162] payload(hex)=4B
+handle_uart_frame:2863:------------------_>>>>>>>finish_send_response = 4.02,3.68
+handle_uart_frame:2864:---------------------------------->>>>>>>>>isnot_spk_count = 9
+uart_log:18:[UART][RX][000032.497] start frame gap=339.225ms
+uart_log:18:[UART][RX][000032.498] frame event=0x011D len=1 crc=0x6C4E ok duration=0.200ms
+uart_log:18:[UART][RX][000032.498] payload(hex)=00
+uart_log:18:[UART][DISPATCH][000032.498] event=0x011D data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000032.498] payload(hex)=00
+apply_eq_from_json_text_wtk:229:[EQ][apply] main write code=0x13 ret=0 (freq=1000.0, B=1, L=3)
+apply_eq_from_json_text_wtk:252:[EQ][apply] summary: total=1, wrote_main=1, wrote_bass=0
+handle_uart_frame:3117:[EQ][011D] mode persisted: 0 (0:STD,1:WALL,2:RECESSED)
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000032.530] event=0x011D len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000032.531] payload(hex)=00
+uart_log:18:[UART][RX][000032.847] start frame gap=349.584ms
+uart_log:18:[UART][RX][000032.847] frame event=0x011C len=1 crc=0x904F ok duration=0.281ms
+uart_log:18:[UART][RX][000032.847] payload(hex)=00
+uart_log:18:[UART][DISPATCH][000032.847] event=0x011C data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000032.847] payload(hex)=00
+handle_uart_frame:2991:------------------_>>>>>>now_start_to_deal = 0.40,0.06
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000032.849] event=0x011C len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000032.849] payload(hex)=00
+handle_uart_frame:3017:---------------------------------->>>>>>>>>isnot_spk_count = 11
+uart_log:18:[UART][RX][000033.185] start frame gap=338.447ms
+uart_log:18:[UART][RX][000033.186] frame event=0x011F len=1 crc=0xD50F ok duration=0.209ms
+uart_log:18:[UART][RX][000033.186] payload(hex)=03
+uart_log:18:[UART][DISPATCH][000033.186] event=0x011F data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000033.186] payload(hex)=03
+handle_uart_frame:3143:------------------_>>>>>>now_start_to_deal = 0.40,0.10
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:3151:--------------SET_LINEOUTPATTERN=3
+handle_uart_frame:3153:------------------_>>>>>>>now_delay = 32.40,32.10
+qtk_proc_write:806:input>[SET_LINEOUTPATTERN3]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:3158:------------------_>>>>>>>now_delay = 32.49,32.20
+handle_uart_frame:3166:------------------_>>>>>>>now_delay = 32.51,32.22
+handle_uart_frame:3168:----------------------now_delay = 132.81
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000033.321] event=0x011F len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000033.321] payload(hex)=00
+handle_uart_frame:3170:------------------_>>>>>>>finish_send_response = 135.36,135.06
+handle_uart_frame:3171:---------------------------------->>>>>>>>>isnot_spk_count = 12
+uart_log:18:[UART][RX][000033.638] start frame gap=452.239ms
+uart_log:18:[UART][RX][000033.638] frame event=0x011E len=1 crc=0x284E ok duration=0.192ms
+uart_log:18:[UART][RX][000033.638] payload(hex)=00
+uart_log:18:[UART][DISPATCH][000033.638] event=0x011E data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000033.638] payload(hex)=00
+handle_uart_frame:3131:------------------_>>>>>>now_start_to_deal = 0.28,0.04
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000033.639] event=0x011E len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000033.639] payload(hex)=03
+handle_uart_frame:3134:------------------_>>>>>>>finish_send_response = 1.60,1.36
+handle_uart_frame:3135:---------------------------------->>>>>>>>>isnot_spk_count = 12
+uart_log:18:[UART][RX][000033.964] start frame gap=325.968ms
+uart_log:18:[UART][RX][000033.964] frame event=0x010A len=0 crc=0xDA21 ok duration=0.190ms
+uart_log:18:[UART][DISPATCH][000033.964] event=0x010A data_len=0
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!handle_uart_frame:2337:------------------_>>>>>>now_start_to_deal = 0.25,0.03
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+qtk_proc_write:806:input>[INPUT_INFOR]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2360:------------------_>>>>>>>now_delay = 33.26,33.04
+handle_uart_frame:2368:------------------_>>>>>>>now_delay = 33.72,33.50
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000033.999] event=0x010A len=307 bytes=316
+uart_log:18:[UART][TX-ACK][000033.999] payload(hex)=5B 7B 0A 09 09 22 70 6F 72 74 54 79 70 65 22 3A
+handle_uart_frame:2370:------------------_>>>>>>>finish_send_response = 35.22,35.00
+handle_uart_frame:2381:---------------------------------->>>>>>>>>isnot_spk_count = 13
+uart_log:18:[UART][RX][000034.128] start frame gap=164.224ms
+uart_log:18:[UART][RX][000034.128] frame event=0x0111 len=4 crc=0x0681 ok duration=0.344ms
+uart_log:18:[UART][RX][000034.128] payload(hex)=03 00 00 00
+uart_log:18:[UART][DISPATCH][000034.128] event=0x0111 data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000034.128] payload(hex)=03 00 00 00
+handle_uart_frame:2850:------------------_>>>>>>now_start_to_deal = 0.50,0.05
+handle_uart_frame:2855:------------------_>>>>>>>now_delay = 0.52,0.07
+handle_uart_frame:2857:The value is: 75
+handle_uart_frame:2861:------------------_>>>>>>>now_delay = 2.71,2.25
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000034.132] event=0x0111 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000034.132] payload(hex)=4B
+handle_uart_frame:2863:------------------_>>>>>>>finish_send_response = 4.01,3.55
+handle_uart_frame:2864:---------------------------------->>>>>>>>>isnot_spk_count = 14
+uart_log:18:[UART][RX][000034.461] start frame gap=333.348ms
+uart_log:18:[UART][RX][000034.461] frame event=0x010E len=5 crc=0x2C56 ok duration=0.281ms
+uart_log:18:[UART][RX][000034.461] payload(hex)=03 00 00 00 01
+uart_log:18:[UART][DISPATCH][000034.461] event=0x010E data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000034.462] payload(hex)=03 00 00 00 01
+handle_uart_frame:2603:------------------_>>>>>>now_start_to_deal = 0.40,0.05
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2636:+========>>>>>>s=483 pc=V
+handle_uart_frame:2641:------------------_>>>>>>>now_delay = 32.34,31.99
+handle_uart_frame:2646:------------------------->>>>>>>>>>>>>>>>>
+qtk_proc_write:806:input>[ENABLE_LINEIN_KWS]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2654:------------------_>>>>>>>now_delay = 32.092000
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000034.495] event=0x010E len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000034.495] payload(hex)=00
+handle_uart_frame:2656:------------------_>>>>>>>finish_send_response = 33.74,33.38
+handle_uart_frame:2657:------------------_>>>>>>>now_delay = 33.427000
+handle_uart_frame:2661:---------------------------------->>>>>>>>>isnot_spk_count = 15
+uart_log:18:[UART][RX][000034.837] start frame gap=375.394ms
+uart_log:18:[UART][RX][000034.837] frame event=0x010F len=5 crc=0x20EE ok duration=0.232ms
+uart_log:18:[UART][RX][000034.837] payload(hex)=01 00 00 00 01
+uart_log:18:[UART][DISPATCH][000034.837] event=0x010F data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000034.837] payload(hex)=01 00 00 00 01
+handle_uart_frame:2669:------------------_>>>>>>now_start_to_deal = 0.36,0.09
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2702:------------------_>>>>>>>now_delay = 31.499000
+handle_uart_frame:2704:------------------_>>>>>>>now_delay = 31.89,31.62
+handle_uart_frame:2708:------------------_>>>>>>>now_delay = 31.99,31.71
+handle_uart_frame:2711:+========>>>>>>s=499 pc=U
+handle_uart_frame:2716:------------------_>>>>>>>now_delay = 32.02,31.74
+handle_uart_frame:2720:------------------_>>>>>>>now_delay = 31.777000
+qtk_proc_write:806:input>[ENABLE_LINEIN_SPK]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2727:------------------_>>>>>>>now_delay = 31.887000
+handle_uart_frame:2733:------------------_>>>>>>>now_delay = 31.902000
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000034.870] event=0x010F len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000034.870] payload(hex)=00
+handle_uart_frame:2735:------------------_>>>>>>>finish_send_response = 33.47,33.20
+handle_uart_frame:2736:---------------------------------->>>>>>>>>isnot_spk_count = 16
+uart_log:18:[UART][RX][000035.194] start frame gap=357.331ms
+uart_log:18:[UART][RX][000035.194] frame event=0x0102 len=4 crc=0x7FA2 ok duration=0.320ms
+uart_log:18:[UART][RX][000035.194] payload(hex)=01 00 00 00
+uart_log:18:[UART][DISPATCH][000035.194] event=0x0102 data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000035.194] payload(hex)=01 00 00 00
+handle_uart_frame:1883:------------------------resp = 0
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000035.196] event=0x0102 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000035.196] payload(hex)=00
+handle_uart_frame:1902:---------------------------------->>>>>>>>>isnot_spk_count = 16
+uart_log:18:[UART][RX][000035.523] start frame gap=329.436ms
+uart_log:18:[UART][RX][000035.524] frame event=0x010B len=0 crc=0x1A70 ok duration=0.241ms
+uart_log:18:[UART][DISPATCH][000035.524] event=0x010B data_len=0
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!handle_uart_frame:2389:------------------_>>>>>>now_start_to_deal = 0.32,0.04
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+qtk_proc_write:806:input>[OUTPUT_INFOR]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2403:------------------_>>>>>>>now_delay = 39.97,39.70
+handle_uart_frame:2405:------------------_>>>>>>>now_delay = 40.01,39.74
+handle_uart_frame:2416:------------------_>>>>>>>now_delay = 43.15,42.87
+handle_uart_frame:2423:----------------------now_delay = 43.45  43.170000
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000035.568] event=0x010B len=302 bytes=311
+uart_log:18:[UART][TX-ACK][000035.568] payload(hex)=5B 7B 0A 09 09 22 70 6F 72 74 54 79 70 65 22 3A
+handle_uart_frame:2425:------------------_>>>>>>>finish_send_response = 44.83,44.55
+handle_uart_frame:2436:---------------------------------->>>>>>>>>isnot_spk_count = 17
+uart_log:18:[UART][RX][000036.013] start frame gap=489.906ms
+uart_log:18:[UART][RX][000036.015] frame event=0x0103 len=110 crc=0x31CD ok duration=1.322ms
+uart_log:18:[UART][RX][000036.015] payload(hex)=03 00 00 00 5B 7B 22 66 72 65 71 22 3A 32 30 30
+uart_log:18:[UART][DISPATCH][000036.015] event=0x0103 data_len=110
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000036.015] payload(hex)=03 00 00 00 5B 7B 22 66 72 65 71 22 3A 32 30 30
+handle_uart_frame:1913:[EQ][0103] === Start EQ output setting ===
+handle_uart_frame:1916:[EQ][0103] Step 1: Checking payload validity...
+handle_uart_frame:1923:[EQ][0103] Payload check passed
+handle_uart_frame:1926:[EQ][0103] Step 2: Sanitizing payload...
+handle_uart_frame:1936:[EQ][0103] Payload sanitized. Length = 106
+handle_uart_frame:1939:[EQ][0103] Step 3: Saving to file /oem/qdreamer/qsound/eq.json...
+handle_uart_frame:1946:[EQ][0103] File saved successfully
+handle_uart_frame:1949:[EQ][0103] Step 4: Applying EQ settings in current thread...
+apply_eq_from_json_text_wtk:229:[EQ][apply] main write code=0x01 ret=0 (freq=200.0, B=0, L=1)
+apply_eq_from_json_text_wtk:240:[EQ][apply] bass write code=0x01 ret=0 (freq=200.0)
+apply_eq_from_json_text_wtk:229:[EQ][apply] main write code=0x14 ret=0 (freq=2000.0, B=1, L=4)
+apply_eq_from_json_text_wtk:229:[EQ][apply] main write code=0x20 ret=0 (freq=6000.0, B=2, L=0)
+apply_eq_from_json_text_wtk:252:[EQ][apply] summary: total=3, wrote_main=3, wrote_bass=1
+handle_uart_frame:1957:[EQ][0103] EQ applied successfully
+handle_uart_frame:1960:[EQ][0103] Step 5: Sending success response...
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000036.068] event=0x0103 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000036.068] payload(hex)=00
+handle_uart_frame:1964:[EQ][0103] === End EQ output setting ===
+uart_log:18:[UART][RX][000036.404] start frame gap=390.993ms
+uart_log:18:[UART][RX][000036.404] frame event=0x011A len=4 crc=0x7E3A ok duration=0.234ms
+uart_log:18:[UART][RX][000036.404] payload(hex)=01 00 00 00
+uart_log:18:[UART][DISPATCH][000036.404] event=0x011A data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000036.404] payload(hex)=01 00 00 00
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000036.406] event=0x011A len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000036.406] payload(hex)=03
+uart_log:18:[UART][RX][000036.741] start frame gap=336.444ms
+uart_log:18:[UART][RX][000036.741] frame event=0x010C len=5 crc=0x35AE ok duration=0.324ms
+uart_log:18:[UART][RX][000036.741] payload(hex)=01 00 00 00 01
+uart_log:18:[UART][DISPATCH][000036.741] event=0x010C data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000036.741] payload(hex)=01 00 00 00 01
+handle_uart_frame:2445:------------------_>>>>>>now_start_to_deal = 0.50,0.06
+handle_uart_frame:2447:------------------_>>>>>>>now_delay = 0.52,0.08
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2478:------------------_>>>>>>>now_delay = 35.04,34.60
+handle_uart_frame:2484:+========>>>>>>s=361 pc=V
+handle_uart_frame:2489:------------------_>>>>>>>now_delay = 35.27,34.84
+qtk_proc_write:806:input>[ENABLE_MIC]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2503:------------------_>>>>>>>now_delay = 35.99,35.55
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000036.778] event=0x010C len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000036.778] payload(hex)=00
+handle_uart_frame:2505:------------------_>>>>>>>finish_send_response = 37.34,36.90
+handle_uart_frame:2512:------------------_>>>>>>>now_delay = 43.55,43.11
+handle_uart_frame:2514:---------------------------------->>>>>>>>>isnot_spk_count = 18
+uart_log:18:[UART][RX][000037.101] start frame gap=360.635ms
+uart_log:18:[UART][RX][000037.102] frame event=0x0101 len=4 crc=0xC790 ok duration=0.271ms
+uart_log:18:[UART][RX][000037.102] payload(hex)=03 00 00 00
+uart_log:18:[UART][DISPATCH][000037.102] event=0x0101 data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000037.102] payload(hex)=03 00 00 00
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000037.103] event=0x0101 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000037.103] payload(hex)=00
+handle_uart_frame:1845:------------------_>>>>>>>finish_send_response = 1.85,1.53
+handle_uart_frame:1850:---------------------------------->>>>>>>>>isnot_spk_count = 18
+uart_log:18:[UART][RX][000037.428] start frame gap=327.072ms
+uart_log:18:[UART][RX][000037.429] frame event=0x0118 len=1 crc=0x634F ok duration=0.205ms
+uart_log:18:[UART][RX][000037.429] payload(hex)=04
+uart_log:18:[UART][DISPATCH][000037.429] event=0x0118 data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000037.429] payload(hex)=04
+handle_uart_frame:2943:------------------_>>>>>>now_start_to_deal = 0.30,0.05
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2946:------------------_>>>>>>>now_delay = 37.02,36.77
+handle_uart_frame:2950:------------------_>>>>>>>now_delay = 37.16,36.91
+handle_uart_frame:2953:-----------------frame->data[1]:4
+handle_uart_frame:2954:------------------_>>>>>>>now_delay = 37.19,36.94
+qtk_proc_write:806:input>[SPEAKER_CONRTOL04]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2957:------------------_>>>>>>>now_delay = 37.31,37.06
+handle_uart_frame:2962:------------------_>>>>>>>now_delay = 37.33,37.08
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000037.467] event=0x0118 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000037.467] payload(hex)=00
+handle_uart_frame:2964:------------------_>>>>>>>finish_send_response = 38.66,38.41
+handle_uart_frame:2965:----------------------------->>>>>>>isnot_spk_count=19
+uart_log:18:[UART][RX][000037.796] start frame gap=367.739ms
+uart_log:18:[UART][RX][000037.796] frame event=0x010D len=5 crc=0xF9D7 ok duration=0.278ms
+uart_log:18:[UART][RX][000037.796] payload(hex)=03 00 00 00 00
+uart_log:18:[UART][DISPATCH][000037.796] event=0x010D data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000037.797] payload(hex)=03 00 00 00 00
+handle_uart_frame:2525:------------------_>>>>>>now_start_to_deal = 0.49,0.13
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2536:+========>>>>>>s=429 pc=V
+handle_uart_frame:2545:------------------_>>>>>>>now_delay = 39.56,39.21
+qtk_proc_write:806:input>[UNENABLE_SPK]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2548:------------------_>>>>>>>now_delay = 39.70,39.34
+handle_uart_frame:2579:------------------_>>>>>>>now_delay = 39.72,39.36
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000037.837] event=0x010D len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000037.837] payload(hex)=00
+handle_uart_frame:2581:------------------_>>>>>>>finish_send_response = 41.25,40.90
+handle_uart_frame:2581:------------------_>>>>>>>now_delay = 41.29,40.93
+handle_uart_frame:2589:------------------_>>>>>>>now_delay = 47.89,47.53
+handle_uart_frame:2592:---------------------------------->>>>>>>>>isnot_spk_count = 21
+uart_log:18:[UART][ASYNC][000037.849] TX event=0x0116 type=SPEAKER payload={"portType":4,"portId":196083715,"portName":"SPK","isUse":false,"gainLevel":75,"audioInputType":0,"isLocalPlay":true}
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ASYNC][000037.851] event=0x0116 len=117 bytes=126
+uart_log:18:[UART][TX-ASYNC][000037.851] payload(hex)=7B 22 70 6F 72 74 54 79 70 65 22 3A 34 2C 22 70
+uart_log:18:[UART][RX][000038.169] start frame gap=372.719ms
+uart_log:18:[UART][RX][000038.169] frame event=0x0105 len=1 crc=0x0C89 ok duration=0.363ms
+uart_log:18:[UART][RX][000038.169] payload(hex)=01
+uart_log:18:[UART][DISPATCH][000038.169] event=0x0105 data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000038.169] payload(hex)=01
+handle_uart_frame:1971:------------------_>>>>>>now_start_to_deal = 0.71,0.17
+handle_uart_frame:2012:================fread=[use_uart=1;
+uart={
+	dev=/dev/ttyS4; #串口节点
+	baude=115200;#波特率
+	c_flow=0;#流控(0 不使用| 1 硬件流控| 2 软件流控)
+	bits=8; #数据位(5,6,7,8)
+	parity=0;#校验位(0 不使用| 1 奇校验 | 2 偶检验)
+	stop=1;#停止位(1 1停止位| 2 2停止位)
+	step_size=4096;#每1ms 发送的字节数
+};
+
+VBOX3_ANS=0;
+VBOX3_AGC=1;
+VBOX3_AEC=0;
+VBOX3_MIC=1;                                                       
+VBOX3_SPK=0;                                         
+VBOX3_LINEIN=1;
+USE_LINEIN_SPK=1;
+USE_LINEIN_MIC=0;
+vbox3_aec_level=1;
+vbox3_agc_level=0;
+vbox3_anc_level=0;
+mic_shift2=3.24;]
+handle_uart_frame:2020:+========>>>>>>s=322 pc=V
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+qtk_proc_write:806:input>[SET_MICANC_ON]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000038.212] event=0x0105 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000038.212] payload(hex)=00
+handle_uart_frame:2043:------------------_>>>>>>>finish_send_response = 43.40,42.86
+handle_uart_frame:2051:------------------_>>>>>>>now_delay = 51.65,51.10
+handle_uart_frame:2052:---------------------------------->>>>>>>>>isnot_spk_count = 22
+uart_log:18:[UART][RX][000038.541] start frame gap=372.316ms
+uart_log:18:[UART][RX][000038.541] frame event=0x0104 len=0 crc=0x1940 ok duration=0.221ms
+uart_log:18:[UART][DISPATCH][000038.541] event=0x0104 data_len=0
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!handle_uart_frame:2060:------------------_>>>>>>now_start_to_deal = 0.29,0.03
+qtk_uart_client_get_arg:831:==================>>>>>>>1024
+handle_uart_frame:2063:anc status: 1
+handle_uart_frame:2070:------------------_>>>>>>>now_delay = 0.63,0.38
+handle_uart_frame:2071:anc status: 0x01
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000038.543] event=0x0104 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000038.543] payload(hex)=01
+handle_uart_frame:2075:------------------_>>>>>>>finish_send_response = 2.04,1.78
+handle_uart_frame:2076:---------------------------------->>>>>>>>>isnot_spk_count = 23
+uart_log:18:[UART][RX][000038.873] start frame gap=332.190ms
+uart_log:18:[UART][RX][000038.874] frame event=0x0107 len=1 crc=0xB488 ok duration=0.234ms
+uart_log:18:[UART][RX][000038.874] payload(hex)=01
+uart_log:18:[UART][DISPATCH][000038.874] event=0x0107 data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000038.874] payload(hex)=01
+handle_uart_frame:2084:------------------_>>>>>>now_start_to_deal = 0.36,0.07
+handle_uart_frame:2126:------------------_>>>>>>>now_delay = 0.61,0.32
+handle_uart_frame:2130:------------------_>>>>>>>now_delay = 0.87,0.58
+handle_uart_frame:2134:------------------_>>>>>>>now_delay = 0.92,0.63
+handle_uart_frame:2139:+========>>>>>>s=335 pc=V
+handle_uart_frame:2141:------------------_>>>>>>>now_delay = 0.98,0.69
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+qtk_proc_write:806:input>[SET_MICAGC_ON]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2161:------------------_>>>>>>>now_delay = 40.81,40.51
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000038.915] event=0x0107 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000038.915] payload(hex)=00
+handle_uart_frame:2163:------------------_>>>>>>>finish_send_response = 42.21,41.92
+handle_uart_frame:2173:------------------_>>>>>>>now_delay = 47.60,47.32
+handle_uart_frame:2174:---------------------------------->>>>>>>>>isnot_spk_count = 24
+uart_log:18:[UART][RX][000039.243] start frame gap=369.385ms
+uart_log:18:[UART][RX][000039.243] frame event=0x0106 len=0 crc=0xD9E1 ok duration=0.206ms
+uart_log:18:[UART][DISPATCH][000039.243] event=0x0106 data_len=0
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!handle_uart_frame:2182:------------------_>>>>>>now_start_to_deal = 0.28,0.03
+handle_uart_frame:2184:------------------_>>>>>>>now_delay = 0.29,0.04
+qtk_uart_client_get_arg:831:==================>>>>>>>1024
+handle_uart_frame:2186:agc status: 1
+handle_uart_frame:2188:------------------_>>>>>>>now_delay = 0.58,0.34
+handle_uart_frame:2194:------------------_>>>>>>>now_delay = 0.61,0.36
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000039.244] event=0x0106 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000039.245] payload(hex)=01
+handle_uart_frame:2196:------------------_>>>>>>>finish_send_response = 1.90,1.65
+handle_uart_frame:2199:---------------------------------->>>>>>>>>isnot_spk_count = 25
+uart_log:18:[UART][RX][000039.566] start frame gap=322.881ms
+uart_log:18:[UART][RX][000039.566] frame event=0x0109 len=1 crc=0x5C8A ok duration=0.229ms
+uart_log:18:[UART][RX][000039.566] payload(hex)=01
+uart_log:18:[UART][DISPATCH][000039.566] event=0x0109 data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000039.566] payload(hex)=01
+handle_uart_frame:2206:------------------_>>>>>>now_start_to_deal = 0.32,0.04
+handle_uart_frame:2244:------------------_>>>>>>>now_delay = 0.42,0.14
+handle_uart_frame:2247:================fread=[use_uart=1;
+uart={
+	dev=/dev/ttyS4; #串口节点
+	baude=115200;#波特率
+	c_flow=0;#流控(0 不使用| 1 硬件流控| 2 软件流控)
+	bits=8; #数据位(5,6,7,8)
+	parity=0;#校验位(0 不使用| 1 奇校验 | 2 偶检验)
+	stop=1;#停止位(1 1停止位| 2 2停止位)
+	step_size=4096;#每1ms 发送的字节数
+};
+
+VBOX3_ANS=1;
+VBOX3_AGC=1;
+VBOX3_AEC=0;
+VBOX3_MIC=1;                                                       
+VBOX3_SPK=0;                                         
+VBOX3_LINEIN=1;
+USE_LINEIN_SPK=1;
+USE_LINEIN_MIC=0;
+vbox3_aec_level=1;
+vbox3_agc_level=0;
+vbox3_anc_level=0;
+mic_shift2=3.24;]
+handle_uart_frame:2249:------------------_>>>>>>>now_delay = 0.64,0.36
+handle_uart_frame:2262:已设置AEC等级: 1
+handle_uart_frame:2264:------------------_>>>>>>>now_delay = 0.71,0.43
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+qtk_proc_write:806:input>[SET_MICAEC_ON_LOW]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2289:------------------_>>>>>>>now_delay = 46.28,46.00
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000039.613] event=0x0109 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000039.613] payload(hex)=00
+handle_uart_frame:2291:------------------_>>>>>>>finish_send_response = 47.71,47.43
+handle_uart_frame:2301:------------------_>>>>>>>now_delay = 53.94,53.66
+handle_uart_frame:2302:---------------------------------->>>>>>>>>isnot_spk_count = 26
+uart_log:18:[UART][RX][000039.942] start frame gap=376.673ms
+uart_log:18:[UART][RX][000039.943] frame event=0x0108 len=0 crc=0x1A80 ok duration=0.220ms
+uart_log:18:[UART][DISPATCH][000039.943] event=0x0108 data_len=0
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!handle_uart_frame:2309:------------------_>>>>>>now_start_to_deal = 0.64,0.05
+handle_uart_frame:2311:------------------_>>>>>>>now_delay = 0.66,0.07
+qtk_uart_client_get_arg:831:==================>>>>>>>1024
+handle_uart_frame:2314:------------------_>>>>>>>now_delay = 2.73,2.14
+handle_uart_frame:2315:AEC Response:AEC level 1
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000039.947] event=0x0108 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000039.947] payload(hex)=01
+handle_uart_frame:2326:------------------_>>>>>>>finish_send_response = 4.92,4.32
+handle_uart_frame:2328:------------------_>>>>>>>now_delay = 4.93,4.34
+handle_uart_frame:2329:---------------------------------->>>>>>>>>isnot_spk_count = 27
+uart_log:18:[UART][RX][000040.265] start frame gap=323.044ms
+uart_log:18:[UART][RX][000040.266] frame event=0x0112 len=5 crc=0x8BAE ok duration=0.413ms
+uart_log:18:[UART][RX][000040.266] payload(hex)=01 00 00 00 57
+uart_log:18:[UART][DISPATCH][000040.266] event=0x0112 data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000040.266] payload(hex)=01 00 00 00 57
+handle_uart_frame:2815:------------------_>>>>>>now_start_to_deal = 0.58,0.05
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2824:--------------SET_MICVOLUME==87
+qtk_proc_write:806:input>[SET_MICVOLUME87]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2836:------------------_>>>>>>>now_delay = 40.64,40.11
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000040.307] event=0x0112 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000040.308] payload(hex)=00
+handle_uart_frame:2838:------------------_>>>>>>>finish_send_response = 42.56,42.03
+handle_uart_frame:2839:---------------------------------->>>>>>>>>isnot_spk_count = 28
+uart_log:18:[UART][RX][000040.638] start frame gap=372.394ms
+uart_log:18:[UART][RX][000040.638] frame event=0x0110 len=4 crc=0x7E90 ok duration=0.244ms
+uart_log:18:[UART][RX][000040.638] payload(hex)=01 00 00 00
+uart_log:18:[UART][DISPATCH][000040.638] event=0x0110 data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000040.638] payload(hex)=01 00 00 00
+handle_uart_frame:2798:------------------_>>>>>>now_start_to_deal = 0.43,0.14
+handle_uart_frame:2802:------------------_>>>>>>>now_delay = 0.45,0.15
+handle_uart_frame:2803:MIC volume_value: 0x57
+handle_uart_frame:2804:------------------_>>>>>>>now_delay = 0.47,0.18
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000040.639] event=0x0110 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000040.639] payload(hex)=57
+handle_uart_frame:2806:------------------_>>>>>>>finish_send_response = 1.71,1.41
+handle_uart_frame:2807:---------------------------------->>>>>>>>>isnot_spk_count = 29
+uart_log:18:[UART][RX][000040.977] start frame gap=339.752ms
+uart_log:18:[UART][RX][000040.978] frame event=0x0113 len=5 crc=0x4C97 ok duration=0.245ms
+uart_log:18:[UART][RX][000040.978] payload(hex)=03 00 00 00 4D
+uart_log:18:[UART][DISPATCH][000040.978] event=0x0113 data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000040.978] payload(hex)=03 00 00 00 4D
+handle_uart_frame:2872:------------------>>>>>>77
+handle_uart_frame:2880:------->echo 77 > /sys/bus/i2c/devices/3-006d/volume
+handle_uart_frame:2888:------->echo 77 > /sys/bus/i2c/devices/3-0069/volume
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000040.984] event=0x0113 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000040.984] payload(hex)=00
+handle_uart_frame:2890:------------------_>>>>>>>finish_send_response = 6.93,6.62
+uart_log:18:[UART][RX][000041.311] start frame gap=333.446ms
+uart_log:18:[UART][RX][000041.311] frame event=0x0111 len=4 crc=0x0681 ok duration=0.374ms
+uart_log:18:[UART][RX][000041.311] payload(hex)=03 00 00 00
+uart_log:18:[UART][DISPATCH][000041.311] event=0x0111 data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000041.311] payload(hex)=03 00 00 00
+handle_uart_frame:2850:------------------_>>>>>>now_start_to_deal = 0.54,0.05
+handle_uart_frame:2855:------------------_>>>>>>>now_delay = 0.56,0.06
+handle_uart_frame:2857:The value is: 77
+handle_uart_frame:2861:------------------_>>>>>>>now_delay = 2.80,2.31
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000041.315] event=0x0111 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000041.315] payload(hex)=4D
+handle_uart_frame:2863:------------------_>>>>>>>finish_send_response = 4.13,3.64
+handle_uart_frame:2864:---------------------------------->>>>>>>>>isnot_spk_count = 30
+uart_log:18:[UART][RX][000041.645] start frame gap=334.387ms
+uart_log:18:[UART][RX][000041.645] frame event=0x011D len=1 crc=0xAC8F ok duration=0.223ms
+uart_log:18:[UART][RX][000041.646] payload(hex)=01
+uart_log:18:[UART][DISPATCH][000041.646] event=0x011D data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000041.646] payload(hex)=01
+apply_eq_from_json_text_wtk:229:[EQ][apply] main write code=0x04 ret=0 (freq=200.0, B=0, L=4)
+apply_eq_from_json_text_wtk:240:[EQ][apply] bass write code=0x04 ret=0 (freq=200.0)
+apply_eq_from_json_text_wtk:252:[EQ][apply] summary: total=1, wrote_main=1, wrote_bass=1
+handle_uart_frame:3117:[EQ][011D] mode persisted: 1 (0:STD,1:WALL,2:RECESSED)
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000041.692] event=0x011D len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000041.693] payload(hex)=00
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][RX][000042.019] start frame gap=374.173ms
+uart_log:18:[UART][RX][000042.020] frame event=0x011C len=1 crc=0x904F ok duration=0.212ms
+uart_log:18:[UART][RX][000042.020] payload(hex)=00
+uart_log:18:[UART][DISPATCH][000042.020] event=0x011C data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000042.020] payload(hex)=00
+handle_uart_frame:2991:------------------_>>>>>>now_start_to_deal = 0.30,0.04
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000042.021] event=0x011C len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000042.021] payload(hex)=01
+handle_uart_frame:3017:---------------------------------->>>>>>>>>isnot_spk_count = 32
+uart_log:18:[UART][RX][000042.350] start frame gap=330.231ms
+uart_log:18:[UART][RX][000042.350] frame event=0x011F len=1 crc=0xD50F ok duration=0.227ms
+uart_log:18:[UART][RX][000042.350] payload(hex)=03
+uart_log:18:[UART][DISPATCH][000042.350] event=0x011F data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000042.350] payload(hex)=03
+handle_uart_frame:3143:------------------_>>>>>>now_start_to_deal = 0.33,0.05
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:3151:--------------SET_LINEOUTPATTERN=3
+handle_uart_frame:3153:------------------_>>>>>>>now_delay = 36.60,36.33
+qtk_proc_write:806:input>[SET_LINEOUTPATTERN3]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:3158:------------------_>>>>>>>now_delay = 37.01,36.73
+handle_uart_frame:3166:------------------_>>>>>>>now_delay = 37.06,36.78
+handle_uart_frame:3168:----------------------now_delay = 137.20
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000042.488] event=0x011F len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000042.488] payload(hex)=00
+handle_uart_frame:3170:------------------_>>>>>>>finish_send_response = 138.76,138.49
+handle_uart_frame:3171:---------------------------------->>>>>>>>>isnot_spk_count = 33
+uart_log:18:[UART][RX][000042.816] start frame gap=465.925ms
+uart_log:18:[UART][RX][000042.816] frame event=0x011E len=1 crc=0x284E ok duration=0.202ms
+uart_log:18:[UART][RX][000042.816] payload(hex)=00
+uart_log:18:[UART][DISPATCH][000042.816] event=0x011E data_len=1
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000042.816] payload(hex)=00
+handle_uart_frame:3131:------------------_>>>>>>now_start_to_deal = 0.29,0.05
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000042.817] event=0x011E len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000042.817] payload(hex)=03
+handle_uart_frame:3134:------------------_>>>>>>>finish_send_response = 1.51,1.26
+handle_uart_frame:3135:---------------------------------->>>>>>>>>isnot_spk_count = 33
+uart_log:18:[UART][RX][000043.144] start frame gap=328.362ms
+uart_log:18:[UART][RX][000043.144] frame event=0x010F len=5 crc=0x20EE ok duration=0.286ms
+uart_log:18:[UART][RX][000043.144] payload(hex)=01 00 00 00 01
+uart_log:18:[UART][DISPATCH][000043.144] event=0x010F data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000043.144] payload(hex)=01 00 00 00 01
+handle_uart_frame:2669:------------------_>>>>>>now_start_to_deal = 0.39,0.05
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2702:------------------_>>>>>>>now_delay = 31.536000
+handle_uart_frame:2704:------------------_>>>>>>>now_delay = 32.40,32.07
+handle_uart_frame:2708:------------------_>>>>>>>now_delay = 32.73,32.39
+handle_uart_frame:2711:+========>>>>>>s=499 pc=U
+handle_uart_frame:2716:------------------_>>>>>>>now_delay = 32.78,32.44
+handle_uart_frame:2720:------------------_>>>>>>>now_delay = 32.491000
+qtk_proc_write:806:input>[ENABLE_LINEIN_SPK]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2727:------------------_>>>>>>>now_delay = 32.575000
+handle_uart_frame:2733:------------------_>>>>>>>now_delay = 32.589000
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000043.178] event=0x010F len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000043.178] payload(hex)=00
+handle_uart_frame:2735:------------------_>>>>>>>finish_send_response = 34.28,33.94
+handle_uart_frame:2736:---------------------------------->>>>>>>>>isnot_spk_count = 34
+uart_log:18:[UART][RX][000043.504] start frame gap=359.862ms
+uart_log:18:[UART][RX][000043.504] frame event=0x0102 len=4 crc=0x7FA2 ok duration=0.281ms
+uart_log:18:[UART][RX][000043.504] payload(hex)=01 00 00 00
+uart_log:18:[UART][DISPATCH][000043.504] event=0x0102 data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000043.504] payload(hex)=01 00 00 00
+handle_uart_frame:1883:------------------------resp = 0
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000043.506] event=0x0102 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000043.506] payload(hex)=00
+handle_uart_frame:1902:---------------------------------->>>>>>>>>isnot_spk_count = 34
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][RX][000043.820] start frame gap=315.732ms
+uart_log:18:[UART][RX][000043.820] frame event=0x010C len=5 crc=0xF56F ok duration=0.274ms
+uart_log:18:[UART][RX][000043.820] payload(hex)=01 00 00 00 00
+uart_log:18:[UART][DISPATCH][000043.820] event=0x010C data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000043.820] payload(hex)=01 00 00 00 00
+handle_uart_frame:2445:------------------_>>>>>>now_start_to_deal = 0.46,0.05
+handle_uart_frame:2447:------------------_>>>>>>>now_delay = 0.52,0.11
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2452:------------------_>>>>>>>now_delay = 33.54,33.13
+handle_uart_frame:2458:+========>>>>>>s=361 pc=V
+handle_uart_frame:2460:------------------_>>>>>>>now_delay = 33.74,33.33
+handle_uart_frame:2464:------------------_>>>>>>>now_delay = 33.78,33.38
+qtk_proc_write:806:input>[UNENABLE_MIC]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2475:------------------_>>>>>>>now_delay = 33.87,33.47
+handle_uart_frame:2503:------------------_>>>>>>>now_delay = 33.95,33.54
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000043.855] event=0x010C len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000043.855] payload(hex)=00
+handle_uart_frame:2505:------------------_>>>>>>>finish_send_response = 35.29,34.88
+handle_uart_frame:2512:------------------_>>>>>>>now_delay = 41.50,41.10
+handle_uart_frame:2514:---------------------------------->>>>>>>>>isnot_spk_count = 35
+uart_log:18:[UART][RX][000044.194] start frame gap=374.766ms
+uart_log:18:[UART][RX][000044.198] frame event=0x0103 len=110 crc=0x31CD ok duration=3.906ms
+uart_log:18:[UART][RX][000044.198] payload(hex)=03 00 00 00 5B 7B 22 66 72 65 71 22 3A 32 30 30
+uart_log:18:[UART][DISPATCH][000044.198] event=0x0103 data_len=110
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000044.199] payload(hex)=03 00 00 00 5B 7B 22 66 72 65 71 22 3A 32 30 30
+handle_uart_frame:1913:[EQ][0103] === Start EQ output setting ===
+handle_uart_frame:1916:[EQ][0103] Step 1: Checking payload validity...
+handle_uart_frame:1923:[EQ][0103] Payload check passed
+handle_uart_frame:1926:[EQ][0103] Step 2: Sanitizing payload...
+handle_uart_frame:1936:[EQ][0103] Payload sanitized. Length = 106
+handle_uart_frame:1939:[EQ][0103] Step 3: Saving to file /oem/qdreamer/qsound/eq.json...
+handle_uart_frame:1946:[EQ][0103] File saved successfully
+handle_uart_frame:1949:[EQ][0103] Step 4: Applying EQ settings in current thread...
+apply_eq_from_json_text_wtk:229:[EQ][apply] main write code=0x01 ret=0 (freq=200.0, B=0, L=1)
+apply_eq_from_json_text_wtk:240:[EQ][apply] bass write code=0x01 ret=0 (freq=200.0)
+apply_eq_from_json_text_wtk:229:[EQ][apply] main write code=0x14 ret=0 (freq=2000.0, B=1, L=4)
+apply_eq_from_json_text_wtk:229:[EQ][apply] main write code=0x20 ret=0 (freq=6000.0, B=2, L=0)
+apply_eq_from_json_text_wtk:252:[EQ][apply] summary: total=3, wrote_main=3, wrote_bass=1
+handle_uart_frame:1957:[EQ][0103] EQ applied successfully
+handle_uart_frame:1960:[EQ][0103] Step 5: Sending success response...
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000044.256] event=0x0103 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000044.256] payload(hex)=00
+handle_uart_frame:1964:[EQ][0103] === End EQ output setting ===
+uart_log:18:[UART][RX][000044.579] start frame gap=385.091ms
+uart_log:18:[UART][RX][000044.580] frame event=0x010D len=5 crc=0x3916 ok duration=0.552ms
+uart_log:18:[UART][RX][000044.580] payload(hex)=03 00 00 00 01
+uart_log:18:[UART][DISPATCH][000044.580] event=0x010D data_len=5
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000044.580] payload(hex)=03 00 00 00 01
+handle_uart_frame:2525:------------------_>>>>>>now_start_to_deal = 0.89,0.14
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1737:=========================>>>>>>>>>>>>>>>>>>>>
+qtk_uart_client_isRunning:1739:=========================>>>>>>>>>>>>>>>>>>>>count=4
+handle_uart_frame:2560:+========>>>>>>s=429 pc=V
+handle_uart_frame:2569:------------------_>>>>>>>now_delay = 47.60,46.85
+qtk_proc_write:806:input>[ENABLE_SPK]
+qtk_proc_write:815:====>>>>qtk_proc_write end once=0
+handle_uart_frame:2572:------------------_>>>>>>>now_delay = 47.74,46.99
+handle_uart_frame:2579:------------------_>>>>>>>now_delay = 47.76,47.01
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000044.628] event=0x010D len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000044.628] payload(hex)=00
+handle_uart_frame:2581:------------------_>>>>>>>finish_send_response = 49.06,48.31
+handle_uart_frame:2581:------------------_>>>>>>>now_delay = 49.08,48.33
+handle_uart_frame:2589:------------------_>>>>>>>now_delay = 56.57,55.82
+handle_uart_frame:2592:---------------------------------->>>>>>>>>isnot_spk_count = 37
+uart_log:18:[UART][ASYNC][000044.638] TX event=0x0116 type=SPEAKER payload={"portType":4,"portId":196083715,"portName":"SPK","isUse":true,"gainLevel":77,"audioInputType":0,"isLocalPlay":true}
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ASYNC][000044.640] event=0x0116 len=116 bytes=125
+uart_log:18:[UART][TX-ASYNC][000044.640] payload(hex)=7B 22 70 6F 72 74 54 79 70 65 22 3A 34 2C 22 70
+uart_log:18:[UART][RX][000044.957] start frame gap=377.303ms
+uart_log:18:[UART][RX][000044.957] frame event=0x0101 len=4 crc=0xC790 ok duration=0.591ms
+uart_log:18:[UART][RX][000044.957] payload(hex)=03 00 00 00
+uart_log:18:[UART][DISPATCH][000044.957] event=0x0101 data_len=4
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!uart_log:18:[UART][DISPATCH][000044.958] payload(hex)=03 00 00 00
+qtk_uart_write2:414:step=4096
+uart_log:18:[UART][TX-ACK][000044.959] event=0x0101 len=1 bytes=10
+uart_log:18:[UART][TX-ACK][000044.959] payload(hex)=00
+handle_uart_frame:1845:------------------_>>>>>>>finish_send_response = 2.62,1.89
+handle_uart_frame:1850:---------------------------------->>>>>>>>>isnot_spk_count = 37
+uart_log:18:[UART][RX][000045.281] start frame gap=323.998ms
+uart_log:18:[UART][RX][000045.281] frame event=0x010A len=0 crc=0xDA21 ok duration=0.471ms
+uart_log:18:[UART][DISPATCH][000045.281] event=0x010A data_len=0
+handle_uart_frame:1783:----------==============------------============-----------=========no way!!!handle_uart_frame:2337:------------------_>>>>>>now_start_to_deal = 0.63,0.09
+qtk_uart_client_isRunning:1715:=========================>>>>>>>>>>>>>>>>>>>>
