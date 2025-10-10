@@ -1217,7 +1217,7 @@ static int qtk_uart_client_send_active(qtk_uart_client_t *uc,uint16_t event_code
 {
     uint8_t hdr0 = RESPONSE_FRAME_HEADER_0; // 0x90
     uint8_t hdr1 = RESPONSE_FRAME_HEADER_1; // 0x40
-    uint8_t ev[2] = { (uint8_t)(event_code & 0xFF), (uint8_t)(event_code >> 8) }; // 小端
+    uint8_t ev[2] = { (uint8_t)(event_code >> 8), (uint8_t)(event_code & 0xFF) }; // 大端
     uint8_t len2[2] = { (uint8_t)(data_len & 0xFF), (uint8_t)(data_len >> 8) };
     uint8_t csum[2] = {0,0};
 
