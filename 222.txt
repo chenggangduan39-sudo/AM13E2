@@ -1,0 +1,100 @@
+qtk_daemon_fixbeam_run_daemon:261:run proc[pid=1457,count=0].qform cfg==>[res/vboxebf/vboxebf3-48K-tmp/vboxebf3.v.0.0.1.48k.cfg]
+SDK cfg set:
+use_vboxebf3         =1
+use_vboxebf4         =0
+use_vboxebf6         =0
+use_ahs              =0
+spk_channel          =3
+mic_shift            =1.000000
+spk_shift            =1.000000
+echo_shift           =1.000000
+max_extp             =-1
+online_tms           =-1
+theta_range          =5
+continue_count       =1
+energy_sum           =0.000000
+zero_sum             =0.000000
+gbias                =-1.000000
+agca                 =-1.000000
+use_ssl              =-1
+use_maskssl          =-1
+use_maskssl2         =-1
+theta_step           =-1
+online_frame_step    =-1
+specsum_fs           =-1
+specsum_fe           =-1
+lf                   =-1
+use_ssl_filter       =1
+use_fftsbf           =-1
+bfmu                 =-1.000000
+echo_bfmu            =-1.000000
+spenr_thresh         =-100000.000000
+noise_suppress       =100000.000000
+echo_suppress        =100000.000000
+echo_suppress_active =100000.000000
+use_cnon             =-1
+sym                  =-100000.000000
+mic_volume           =-1.000000
+agc_level            =-1.000000
+agc_enable           =-1
+echo_enable          =-1
+denoise_enable       =-1
+suppress             =-1.000000
+use_erlssingle       =-1
+use_ssl_delay        =-1
+---------------end-----------------
+qtk_mod_am13e2_new:115:=================>>>>>>>>>>old:0
+qtk_mod_am13e2_new:119:=================>>>>>>>>>>new:-20
+qtk_mod_am13e2_new:143:------------------------------>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_new:150:------------------------------>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_new:169:------------------------------>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_log_wav_file_new:1874:============>>>>>>>sample_rate=48000 channel=8 bytes_per_sample=2
+qtk_mod_am13e2_log_wav_file_new:1902:===>jlchannel=1
+qtk_mod_am13e2_new:181:------------------------------>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_new:187:------------------------------>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_new:188:=========>>>>>>>>use_array=1
+qtk_mod_am13e2_new:201:------------------------------>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_new:211:------------------------------>>>>>>>>>>>>>>>>
+BUILD AT 2025.8.5.16:32:40
+===>buffer_size=3072
+===>period_size=768
+===>buffer_size=3072
+===>period_size=768
+===>buffer_size=3072
+===>period_size=768
+qtk_mod_am13e2_new:268:------------------------------>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_new:276:------------------------------>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_new:346:qtk_mod_am13e2 NEW OK!!!
+qformssl_run:178:===================>>>>>>>>>>rate=48000
+qtk_mod_am13e2_start2:718:================================>>>>>>>>>>>>>>>rate=48000
+qtk_mod_am13e2_start:577:==========================>>>>>>>>>>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_start:582:==========================>>>>>>>>>>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_start:588:==========================>>>>>>>>>>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_start:594:==========================>>>>>>>>>>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_start:606:==========================>>>>>>>>>>>>>>>>>>>>>>>>>
+cardneme: UAC1_Gadget
+get asound card success card = 4. cardid = [UAC1Gadget     ]. deviceid = UAC1_Gadget. cardname = UAC1_Gadget.
+Set returned by pthread_getaffinity_np() contained:
+    CPU 0
+qtk_mod_am13e2_start:612:==========================>>>>>>>>>>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_start:614:==========================>>>>>>>>>>>>>>>>>>>>>>>>>
+qtk_mod_am13e2_start:623:==========================>>>>>>>>>>>>>>>>>>>>>>>>>
+Set returned by pthread_getaffinity_np() contained:
+    CPU 2
+qtk_mod_am13e2_merge_rcd_entry:1105:---------------->>>>>>>>>>>>>>>>>qtk_mod_am13e2_merge_rcd_entry
+Set returned by pthread_getaffinity_np() contained:
+    CPU 1
+    CPU 2
+Set returned by pthread_getaffinity_np() contained:
+qformssl_run:189:==========>>>>>>>starttime=212.200000
+    CPU 1
+qtk_mod_am13e2_rcd_entry:1546:rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr entry tmpbuf->pos=0
+Set returned by pthread_getaffinity_np() contained:
+    CPU 1
+qtk_mod_am13e2_rcd2_entry:1499:rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr entry
+qtk_mod_am13e2_rcd_entry:1556:=================>>>>>>>>>>>>>>>>>>>record tm=1139507.128000
+qtk_mod_am13e2_rcd2_entry:1509:=================>>>>>>>>>>>>>>>>>>>record2 tm=1139507.918000
+qtk_mod_am13e2_usbaudio_entry:1661:===================>>>>>>>>>>>>>>>>>>>>>>>>>player time=1139571.042000
+qtk_mod_am13e2_usbaudio_entry:1664:play zero buf 1728
+qtk_alsa_player_write:623:player underrun ret=-32 cnt=1 bytes=8192 kx=0
+
